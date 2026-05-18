@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: my-learning-routine
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGODB_URI
+        sync: false   # Render dashboard থেকে manually দিতে হবে
+      - key: NODE_ENV
+        value: production

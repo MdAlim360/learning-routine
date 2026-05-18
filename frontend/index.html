@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Learning Routine - Legacy Edition v20.1</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght=0,700;1,700&family=Plus+Jakarta+Sans:wght=400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { background-color: #060813; color: #f3f4f6; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .main-title { font-family: 'Playfair Display', serif; }
+        .tab-btn { background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.3s ease; }
+        .tab-btn.active { background: #6366f1; color: white; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .routine-cell:hover .edit-icon { opacity: 1; }
+        .edit-icon { opacity: 0; transition: opacity 0.2s; }
+        @keyframes slideDown { 0% { transform: translateY(-50px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        .surprise-alert { animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes scaleUp { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-animate { animation: scaleUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        /* VIBRANT PREMIUM COLORFUL RE-INJECTION SCHEME */
+        .cat-prog { border-color: rgba(99, 102, 241, 0.2) !important; color: #a5b4fc !important; background: rgba(99, 102, 241, 0.04); }
+        .cat-acad { border-color: rgba(244, 63, 94, 0.2) !important; color: #fca5a5 !important; background: rgba(244, 63, 94, 0.04); }
+        .cat-bcs { border-color: rgba(251, 191, 36, 0.2) !important; color: #fde047 !important; background: rgba(251, 191, 36, 0.03); }
+        .cat-eng { border-color: rgba(52, 211, 153, 0.2) !important; color: #6ee7b7 !important; background: rgba(52, 211, 153, 0.04); }
+        .cat-soft { border-color: rgba(56, 189, 248, 0.2) !important; color: #7dd3fc !important; background: rgba(56, 189, 248, 0.04); }
+        .cat-res { border-color: rgba(244, 114, 182, 0.2) !important; color: #f9a8d4 !important; background: rgba(244, 114, 182, 0.04); }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div id="surprise-toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto text-center mt-4 mb-10">
+        <p class="text-[11px] uppercase tracking-widest text-emerald-400 font-bold mb-2">📚 Lifetime Achievement Engine</p>
+        <h1 class="main-title text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-400 mb-2">
+            My Learning Routine
+        </h1>
+        
+        <div class="flex justify-center gap-3 mt-8">
+            <button onclick="switchTab('routine')" id="tab-routine" class="tab-btn active text-xs font-semibold px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-2">
+                <i class="fa-solid fa-table"></i> Routine
+            </button>
+            <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn text-xs font-semibold px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-2">
+                <i class="fa-solid fa-pen"></i> Daily Log & Workbench
+            </button>
+            <button onclick="switchTab('progress')" id="tab-progress" class="tab-btn text-xs font-semibold px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-2">
+                <i class="fa-solid fa-trophy"></i> Progress & Legacy Ledger
+            </button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+
+        <div id="view-routine" class="tab-view block space-y-4">
+            <div class="overflow-x-auto bg-[#0a0f24]/80 border border-gray-900 rounded-2xl p-6 shadow-2xl custom-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[1100px]">
+                    <thead>
+                        <tr class="text-[11px] font-bold uppercase tracking-widest border-b border-gray-900 pb-4">
+                            <th class="p-3 w-32 text-gray-400">Day</th>
+                            <th class="p-3 text-indigo-400 bg-indigo-950/10 rounded-t-xl">✨ Programming</th>
+                            <th class="p-3 text-rose-400 bg-rose-950/10 rounded-t-xl">✨ Academic / Gov Job</th>
+                            <th class="p-3 text-amber-300 bg-amber-950/10 rounded-t-xl">✨ BCS</th>
+                            <th class="p-3 text-emerald-400 bg-emerald-950/10 rounded-t-xl">✨ English</th>
+                            <th class="p-3 text-sky-400 bg-sky-950/10 rounded-t-xl">✨ Software</th>
+                            <th class="p-3 text-pink-400 bg-pink-950/10 rounded-t-xl">✨ Research / ML</th>
+                        </tr>
+                    </thead>
+                    <tbody id="routine-table-body" class="divide-y divide-gray-900/50 text-xs"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-daily" class="tab-view hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 id="daily-day-title" class="text-2xl font-bold text-white">Today's Workbench</h2>
+                    <p id="daily-date-subtitle" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-gray-400">Viewing Date:</span>
+                    <input type="date" id="date-picker" onchange="handleDateChange(this.value)" class="bg-[#0e1638] border border-gray-800 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-300 outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-7 space-y-6">
+                    
+                    <div class="bg-slate-950 border border-gray-900 p-5 rounded-2xl shadow-xl">
+                        <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-plus"></i> Add New Topic Entry
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Select Category</label>
+                                <select id="injector-cat-select" onchange="populateInjectorSubjects()" class="w-full bg-[#0a0f24] border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-300 outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Select Active Subject</label>
+                                <select id="injector-sub-select" class="w-full bg-[#0a0f24] border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-300 outline-none"></select>
+                            </div>
+                        </div>
+                        <div class="space-y-3 mb-4">
+                            <div>
+                                <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Topic Description</label>
+                                <input type="text" id="injector-topic-name" placeholder="Enter specific topic details here..." class="w-full bg-[#060919] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button onclick="handleInjectorSubmit()" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold px-6 py-2 rounded-xl text-xs cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-indigo-950">
+                                <i class="fa-solid fa-plus"></i> Inject Into System
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-book-open text-indigo-400"></i> Today's Scheduled Topics
+                        </h3>
+                        <div id="daily-live-topics-container" class="grid grid-cols-1 gap-4"></div>
+                    </div>
+
+                    <div class="bg-[#040714] border border-emerald-950/40 p-5 rounded-2xl shadow-xl">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> Completed Topics (Today's History Archive)
+                        </h3>
+                        <div id="daily-completed-topics-container" class="space-y-2"></div>
+                    </div>
+
+                </div>
+
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-gradient-to-b from-slate-950 to-[#0a0f24] border border-indigo-950 p-6 rounded-2xl shadow-xl">
+                        <h3 class="text-amber-400 font-bold text-sm mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-nodes"></i> Spaced & Custom Revision Radar
+                        </h3>
+                        <p class="text-[11px] text-gray-500 mb-4">অটোমেটিক মাইলস্টোন (১, ৩, ৭, ৩০ দিন) অথবা ম্যানুয়ালি পুশ করা কাস্টম রিভিশন রিকোয়েস্টগুলো এখানে লাইভ টাস্ক হিসেবে জমা হয়।</p>
+                        <div id="automatic-revision-list" class="space-y-3 max-h-[550px] overflow-y-auto custom-scrollbar pr-2"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="view-progress" class="tab-view hidden space-y-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-[#0a0f24] p-5 rounded-xl border border-gray-900 text-center">
+                    <span id="stat-topics-complete" class="text-3xl font-bold text-emerald-400">0</span>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Total Completed</p>
+                </div>
+                <div class="bg-[#0a0f24] p-5 rounded-xl border border-gray-900 text-center">
+                    <span id="stat-topics-pending" class="text-3xl font-bold text-rose-400">0</span>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Total Pending</p>
+                </div>
+                <div class="bg-[#0a0f24] p-5 rounded-xl border border-gray-900 text-center">
+                    <span id="stat-reviews-done" class="text-3xl font-bold text-amber-400">0</span>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Reviews Done 🎯</p>
+                </div>
+                <div class="bg-[#0a0f24] p-5 rounded-xl border border-gray-900 text-center">
+                    <span id="stat-success-rate" class="text-3xl font-bold text-indigo-400">0%</span>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Efficiency Rate</p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Last 30 Days Activity Log</h3>
+                <div id="calendar-grid" class="flex flex-wrap gap-2 p-4 bg-[#0a0f24]/50 border border-gray-900 rounded-xl"></div>
+            </div>
+
+            <div id="selected-day-history-box" class="bg-[#0b1230] border border-indigo-950/50 p-5 rounded-xl hidden">
+                <h4 id="history-box-title" class="text-sm font-bold text-indigo-400 mb-3"></h4>
+                <div id="history-box-content" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-gray-900 pt-6">
+                
+                <div class="lg:col-span-7 bg-[#050816] border border-emerald-950/40 p-5 rounded-2xl shadow-xl">
+                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-tree text-amber-400"></i> Lifetime Completed Topics Map
+                    </h3>
+                    <p class="text-[11px] text-gray-500 mb-4">আপনার অর্জিত সমস্ত টপিক এখানে <strong>Category ➔ Subject</strong> অনুযায়ী ক্রমানুসারে সাজানো রয়েছে।</p>
+                    <div id="lifetime-achieved-container" class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2"></div>
+                </div>
+
+                <div class="lg:col-span-5 bg-[#050816] border border-indigo-950/40 p-5 rounded-2xl shadow-xl">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Unique Revision Ledger & Timeline
+                    </h3>
+                    <p class="text-[11px] text-gray-500 mb-4">আপনার রিভিশন দেওয়া টপিকগুলোও এখন সহজে বোঝার জন্য বাম পাশের মতো <strong>Category ➔ Subject</strong> ওয়াইজ সাজানো রয়েছে।</p>
+                    <div id="lifetime-unique-revision-container" class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2"></div>
+                </div>
+
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">Topic Completion Overview By Category</h3>
+                <div id="category-summary-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+
+            <div class="bg-[#070b1e] border border-rose-950/30 rounded-2xl p-6 shadow-2xl">
+                <div class="mb-4">
+                    <h3 class="text-sm font-bold text-rose-400 flex items-center gap-2">
+                        <i class="fa-solid fa-broom"></i> Master Log & Data Cleaner
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-1">ভুলবশত উল্টাপাল্টা টপিক অ্যাড বা কমপ্লিট করা হয়ে গেলে এখান থেকে ডিলিট করে দিন।</p>
+                </div>
+                <div class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar border border-gray-900 rounded-xl">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-950 text-gray-400 font-bold uppercase tracking-wider text-[10px] border-b border-gray-900">
+                                <th class="p-3">Logged Date</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Subject</th>
+                                <th class="p-3">Topic Detail</th>
+                                <th class="p-3 text-center">Reference Node</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="master-cleaner-tbody" class="divide-y divide-gray-900/50 bg-slate-950/20"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-[#0d1533] border border-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <h3 id="modal-title" class="text-base font-bold text-white mb-2">Edit Subjects</h3>
+            <input type="text" id="modal-input" class="w-full bg-[#151f47] border border-gray-700 rounded-xl px-4 py-3 text-sm text-white outline-none">
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="closeModal()" class="px-4 py-2 text-xs font-medium text-gray-400 cursor-pointer">Cancel</button>
+                <button onclick="saveModalChanges()" class="px-5 py-2.5 bg-indigo-600 text-white font-bold text-xs rounded-xl cursor-pointer">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="complete-prompt-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-[#0a0f26] border border-indigo-950 rounded-2xl w-full max-w-md p-6 shadow-[0_0_40px_rgba(99,102,241,0.25)] modal-animate">
+            <h3 class="text-base font-bold text-indigo-400 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap"></i> Complete Topic Workflow
+            </h3>
+            <p class="text-xs text-gray-400 mb-4">পড়া তো শেষ করলেন! এবার এই টপিকের তৈরি করা কোনো নোট বা রেফারেন্স ড্রাইভ লিংক থাকলে শেয়ার করুন (ঐচ্ছিক)।</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <span class="text-[10px] text-gray-500 uppercase font-black block mb-1">Active Target Topic</span>
+                    <div id="prompt-modal-topic-title" class="p-3 bg-slate-950 border border-gray-900 rounded-xl text-xs text-white font-medium"></div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-500 uppercase font-black block mb-1">Note / PDF Link (Google Drive, Notion, Cloud)</label>
+                    <div class="flex gap-2">
+                        <span class="bg-[#121a3e] border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-400 flex items-center"><i class="fa-solid fa-link"></i></span>
+                        <input type="url" id="prompt-modal-url-input" placeholder="https://drive.google.com/..." class="flex-1 bg-slate-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="closeCompletePromptModal()" class="px-4 py-2 text-xs font-bold text-gray-400 cursor-pointer">
+                    Cancel
+                </button>
+                <button id="prompt-submit-btn" class="px-6 py-2 bg-gradient-to-r from-emerald-600 to-indigo-600 text-white font-extrabold text-xs rounded-xl shadow-lg cursor-pointer">
+                    ✅ Complete Topic
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="purge-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-950 border border-rose-900/50 rounded-2xl w-full max-w-sm p-6 shadow-[0_0_50px_rgba(244,63,94,0.15)] modal-animate text-center">
+            <div class="mx-auto w-12 h-12 bg-rose-950/50 border border-rose-500/30 text-rose-400 text-xl rounded-full flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
+                <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
+            </div>
+            <h3 class="text-base font-black text-rose-400 uppercase tracking-wide mb-1">Purge Record?</h3>
+            <p class="text-xs text-gray-400 leading-relaxed px-2 mb-6">Are you sure you want to completely destroy this logged topic? This action will restore your perfect legacy state immediately.</p>
+            <div class="flex items-center gap-3">
+                <button onclick="closePurgeModal()" class="flex-1 py-2.5 bg-slate-900 border border-gray-800 text-gray-400 hover:text-white font-bold text-xs rounded-xl transition-all cursor-pointer">
+                    Cancel
+                </button>
+                <button id="confirm-purge-btn" class="flex-1 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 text-white font-extrabold text-xs rounded-xl shadow-lg hover:shadow-rose-500/20 active:scale-98 transition-all cursor-pointer">
+                    Yes, Purge It
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===================== API CONFIG =====================
+        // Auto-detect: same origin হলে relative path, নইলে BACKEND_URL ব্যবহার করো
+        const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+            ? 'http://localhost:5000/api'
+            : '/api';
+
+        const defaultRoutine = {
+            "Saturday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Structure–II", "R.C.C–II"], ["Geography", "English"], ["English Speaking"], ["QGIS"], ["Machine Learning"]],
+            "Sunday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Structure–II", "R.C.C–II"], [], ["English Speaking"], ["QGIS"], ["Machine Learning"]],
+            "Monday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Geotech–II", "Steel Structure"], ["Geography", "English"], ["Basic English"], ["SAP 2000"], ["Machine Learning"]],
+            "Tuesday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Geotech–II", "Steel Structure"], [], ["Basic English"], ["SAP 2000"], ["Machine Learning"]],
+            "Wednesday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Transportation", "Earth Quake Engineering", "Structure–I"], ["Geography", "English"], ["Freehand Writing"], ["Excel"], ["Research Class"]],
+            "Thursday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Transportation", "Earth Quake Engineering", "Structure–I"], [], ["Freehand Writing"], ["Excel"], ["Research Class"]],
+            "Friday": [[], [], ["Geography", "English"], [], [], []]
+        };
+
+        const cats = ["Programming", "Academic / Gov Job", "BCS", "English", "Software", "Research / ML"];
+        const cssClasses = ["cat-prog", "cat-acad", "cat-bcs", "cat-eng", "cat-soft", "cat-res"];
+        const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        
+        let dbRoutine = defaultRoutine;
+        let dbTopics = {};
+
+        const todayDateObj = new Date();
+        const year = todayDateObj.getFullYear();
+        const month = String(todayDateObj.getMonth() + 1).padStart(2, '0');
+        const dayStr = String(todayDateObj.getDate()).padStart(2, '0');
+        const systemTodayStr = `${year}-${month}-${dayStr}`;
+
+        let activeDate = systemTodayStr;
+        let activeEditCell = null;
+        let pendingPurgeId = null;
+        let pendingCompleteTopicId = null;
+        let isSyncing = false;
+
+        const surprisePool = [
+            { title: "🚀 HYPER DRIVE BURST", msg: "Unstoppable momentum! Space elements blasted.", color: "from-amber-500 to-rose-500", type: "fireworks" },
+            { title: "👑 LEGENDARY STREAK", msg: "Master engineering tier unlocked for this session!", color: "from-cyan-400 via-indigo-500 to-purple-600", type: "starburst" },
+            { title: "⚡ FOCUS SHOCKWAVE", msg: "Efficiency spike registered on the active radar!", color: "from-emerald-400 to-teal-600", type: "shower" },
+            { title: "🎯 RADAR SUPREMACY", msg: "Perfect conversion! Spaced repetition optimized.", color: "from-pink-500 via-purple-600 to-indigo-700", type: "massive" },
+            { title: "💎 RADAR OVERLOAD DETECTED", msg: "Topic successfully routed to Active Revision Radar!", color: "from-purple-500 to-indigo-500", type: "gold" }
+        ];
+
+        // ===================== API HELPERS =====================
+        function showSyncIndicator(text = "Syncing...") {
+            let ind = document.getElementById('sync-indicator');
+            if (!ind) {
+                ind = document.createElement('div');
+                ind.id = 'sync-indicator';
+                ind.className = 'fixed bottom-4 right-4 z-50 bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2';
+                document.body.appendChild(ind);
+            }
+            ind.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i> ${text}`;
+            ind.style.display = 'flex';
+        }
+
+        function hideSyncIndicator() {
+            const ind = document.getElementById('sync-indicator');
+            if (ind) ind.style.display = 'none';
+        }
+
+        async function apiGet(endpoint) {
+            const res = await fetch(`${API_BASE}${endpoint}`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error || 'API Error');
+            return json.data;
+        }
+
+        async function apiPost(endpoint, body) {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error || 'API Error');
+            return json.data;
+        }
+
+        async function apiPut(endpoint, body) {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error || 'API Error');
+            return json.data;
+        }
+
+        async function apiDelete(endpoint) {
+            const res = await fetch(`${API_BASE}${endpoint}`, { method: 'DELETE' });
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error || 'API Error');
+            return json.data;
+        }
+
+        // ===================== MIGRATION HELPER =====================
+        // LocalStorage এ পুরনো data থাকলে একবার MongoDB তে migrate করো
+        async function migrateFromLocalStorageIfNeeded() {
+            const migrated = localStorage.getItem('_migrated_to_mongo');
+            if (migrated) return;
+
+            const oldTopics = JSON.parse(localStorage.getItem('db_topics_v19'))
+                || JSON.parse(localStorage.getItem('db_topics_v18'))
+                || JSON.parse(localStorage.getItem('db_topics_v13'));
+            const oldRoutine = JSON.parse(localStorage.getItem('db_routine'));
+
+            if (oldTopics && Object.keys(oldTopics).length > 0) {
+                try {
+                    showSyncIndicator("Migrating old data...");
+                    await apiPost('/topics/bulk', oldTopics);
+                    console.log('✅ Old topics migrated to MongoDB!');
+                } catch(e) { console.error('Migration error:', e); }
+            }
+
+            if (oldRoutine) {
+                try {
+                    await apiPut('/routine', oldRoutine);
+                    console.log('✅ Old routine migrated to MongoDB!');
+                } catch(e) { console.error('Routine migration error:', e); }
+            }
+
+            localStorage.setItem('_migrated_to_mongo', '1');
+        }
+
+        // ===================== INITIAL DATA LOAD =====================
+        window.onload = async function() {
+            document.getElementById('date-picker').value = activeDate;
+            showSyncIndicator("Loading data...");
+            try {
+                await migrateFromLocalStorageIfNeeded();
+                const [routineData, topicsData] = await Promise.all([
+                    apiGet('/routine'),
+                    apiGet('/topics')
+                ]);
+                dbRoutine = routineData;
+                dbTopics = topicsData;
+            } catch(e) {
+                console.error('Initial load failed:', e);
+                // fallback to default if API fails
+                dbRoutine = defaultRoutine;
+                dbTopics = {};
+            }
+            hideSyncIndicator();
+            renderRoutineTable();
+            setupInjectorOptions();
+            renderDailyLog();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            
+            if(tabId === 'progress') renderProgressTab();
+            if(tabId === 'daily') renderDailyLog();
+        }
+
+        // ================= TAB 1: ROUTINE SYSTEM =================
+        function renderRoutineTable() {
+            const tbody = document.getElementById('routine-table-body');
+            tbody.innerHTML = '';
+            days.forEach(day => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 border-b border-gray-900/50 transition-colors";
+                let html = `<td class="p-4 font-bold text-gray-400 border-r border-gray-900/30">${day}</td>`;
+                
+                dbRoutine[day].forEach((cellArr, idx) => {
+                    let colorfulClass = cssClasses[idx];
+                    html += `<td class="p-4 align-top routine-cell ${colorfulClass} border-r border-gray-900/20 last:border-r-0"><div class="flex flex-col gap-1.5 min-h-[44px]">`;
+                    if(cellArr.length === 0) html += `<span class="text-gray-700/60 font-medium italic">empty</span>`;
+                    else {
+                        cellArr.forEach(sub => {
+                            html += `<span class="px-2 py-1 bg-slate-950/80 border border-gray-800 rounded text-[10px] font-bold text-gray-200 shadow-sm w-fit">${sub}</span>`;
+                        });
+                    }
+                    html += `</div><button onclick="openModal('${day}', ${idx})" class="edit-icon text-[10px] text-indigo-400 hover:text-white mt-2 block font-bold cursor-pointer"><i class="fa-regular fa-pen-to-square text-[9px]"></i> Edit</button></td>`;
+                });
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openModal(day, catIdx) {
+            activeEditCell = { day, catIdx };
+            document.getElementById('modal-title').innerText = `Edit: ${day} -> ${cats[catIdx]}`;
+            document.getElementById('modal-input').value = dbRoutine[day][catIdx].join(', ');
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+        async function saveModalChanges() {
+            let val = document.getElementById('modal-input').value;
+            dbRoutine[activeEditCell.day][activeEditCell.catIdx] = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            closeModal();
+            renderRoutineTable();
+            setupInjectorOptions();
+            renderDailyLog();
+            try {
+                showSyncIndicator("Saving routine...");
+                await apiPut('/routine', dbRoutine);
+            } catch(e) { console.error('Routine save error:', e); }
+            finally { hideSyncIndicator(); }
+        }
+
+        // ================= FIXED INJECTOR DROPDOWN CONTROL =================
+        function setupInjectorOptions() {
+            const catSelect = document.getElementById('injector-cat-select');
+            catSelect.innerHTML = '';
+            cats.forEach((c, idx) => {
+                catSelect.innerHTML += `<option value="${idx}">${c}</option>`;
+            });
+            populateInjectorSubjects();
+        }
+
+        function populateInjectorSubjects() {
+            const catIdx = document.getElementById('injector-cat-select').value;
+            const targetDay = new Date(activeDate).toLocaleDateString('en-US', { weekday: 'long' });
+            const subSelect = document.getElementById('injector-sub-select');
+            subSelect.innerHTML = '';
+
+            let routineSubjects = dbRoutine[targetDay][catIdx] || [];
+            if(routineSubjects.length === 0) {
+                subSelect.innerHTML = `<option value="">-- No Scheduled Subject --</option>`;
+            } else {
+                routineSubjects.forEach(sub => {
+                    subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+                });
+            }
+        }
+
+        async function handleInjectorSubmit() {
+            const catSelect = document.getElementById('injector-cat-select');
+            const subSelect = document.getElementById('injector-sub-select');
+            const topicInput = document.getElementById('injector-topic-name');
+
+            let catName = cats[catSelect.value];
+            let subName = subSelect.value;
+            let topicName = topicInput.value.trim();
+
+            if(!subName || subName.startsWith('--') || !topicName) {
+                alert("Please select a valid subject and enter topic description.");
+                return;
+            }
+
+            let newRecord = {
+                id: Date.now(),
+                date: activeDate,
+                originDate: activeDate,
+                completionDate: null,
+                category: catName,
+                subject: subName,
+                topicName: topicName,
+                noteUrl: null,
+                status: 'Pending',
+                reviewsDone: [],
+                reviewHistoryStamps: {},
+                customRevPendingOn: null,
+                customReviewHistoryDates: []
+            };
+
+            topicInput.value = '';
+            // Optimistic update
+            if(!dbTopics[activeDate]) dbTopics[activeDate] = [];
+            dbTopics[activeDate].push(newRecord);
+            renderDailyLog();
+
+            try {
+                showSyncIndicator("Adding topic...");
+                dbTopics = await apiPost('/topics', newRecord);
+                renderDailyLog();
+            } catch(e) { console.error('Add topic error:', e); }
+            finally { hideSyncIndicator(); }
+        }
+
+        // ================= TAB 2: RENDERING LIVE & COMPLETED SECTIONS =================
+        function handleDateChange(val) { 
+            activeDate = val; 
+            populateInjectorSubjects();
+            renderDailyLog(); 
+        }
+
+        function triggerSurprise(forcedIndex = null) {
+            const randomIndex = Math.floor(Math.random() * surprisePool.length);
+            const reward = forcedIndex !== null ? surprisePool[forcedIndex] : surprisePool[randomIndex];
+            const container = document.getElementById('surprise-toast-container');
+            const toast = document.createElement('div');
+            toast.className = `surprise-alert pointer-events-auto w-full bg-gradient-to-r ${reward.color} p-4 rounded-xl shadow-2xl border border-white/20 text-white mb-3`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="bg-black/20 p-2 rounded-lg text-lg"><i class="fa-solid fa-gift"></i></div>
+                    <div>
+                        <h5 class="text-xs font-black tracking-wider uppercase">${reward.title}</h5>
+                        <p class="text-[11px] opacity-90 font-medium">${reward.msg}</p>
+                    </div>
+                </div>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('transition-all', 'duration-500', 'opacity-0', '-translate-y-4');
+                setTimeout(() => toast.remove(), 500);
+            }, 3500);
+
+            if (reward.type === "fireworks") {
+                let duration = 2 * 1000;
+                let end = Date.now() + duration;
+                (function frame() {
+                    confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0 } });
+                    confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1 } });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+            } else if (reward.type === "starburst") {
+                confetti({ particleCount: 100, spread: 100, origin: { y: 0.6 }, colors: ['#22d3ee', '#6366f1', '#a855f7'] });
+            } else if (reward.type === "shower") {
+                confetti({ particleCount: 80, angle: 90, spread: 360, startVelocity: 15, scalar: 1.2, origin: { y: 0.5 } });
+            } else if (reward.type === "gold") {
+                confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 }, colors: ['#fbbf24', '#f59e0b', '#ffffff'] });
+            } else {
+                confetti({ particleCount: 150, spread: 80, scalar: 1, origin: { y: 0.6 } });
+            }
+        }
+
+        function openCompletePromptModal(id, topicName) {
+            pendingCompleteTopicId = id;
+            document.getElementById('prompt-modal-topic-title').innerText = topicName;
+            document.getElementById('prompt-modal-url-input').value = '';
+            document.getElementById('complete-prompt-modal').classList.remove('hidden');
+            
+            document.getElementById('prompt-submit-btn').onclick = function() {
+                let inputUrl = document.getElementById('prompt-modal-url-input').value.trim();
+                executeCompletionWorkflow(pendingCompleteTopicId, inputUrl);
+            };
+        }
+
+        function closeCompletePromptModal() {
+            document.getElementById('complete-prompt-modal').classList.add('hidden');
+            pendingCompleteTopicId = null;
+        }
+
+        async function executeCompletionWorkflow(id, inputUrl) {
+            let updatedTopic = null;
+            Object.keys(dbTopics).forEach(d => {
+                dbTopics[d].forEach(t => {
+                    if(t.id === id) {
+                        t.status = 'Complete';
+                        t.completionDate = activeDate;
+                        t.noteUrl = inputUrl || null;
+                        updatedTopic = { ...t };
+                        triggerSurprise();
+                    }
+                });
+            });
+            closeCompletePromptModal();
+            renderDailyLog();
+            if (updatedTopic) {
+                try {
+                    showSyncIndicator("Completing topic...");
+                    dbTopics = await apiPut(`/topics/${id}`, updatedTopic);
+                } catch(e) { console.error('Complete topic error:', e); }
+                finally { hideSyncIndicator(); }
+            }
+        }
+
+        function renderDailyLog() {
+            const targetDay = new Date(activeDate).toLocaleDateString('en-US', { weekday: 'long' });
+            document.getElementById('daily-day-title').innerText = `${targetDay}'s Workbench`;
+            document.getElementById('daily-date-subtitle').innerText = new Date(activeDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            const liveContainer = document.getElementById('daily-live-topics-container');
+            const compContainer = document.getElementById('daily-completed-topics-container');
+            
+            liveContainer.innerHTML = '';
+            compContainer.innerHTML = '';
+
+            if(!dbTopics[activeDate]) dbTopics[activeDate] = [];
+
+            let dayRecords = dbTopics[activeDate];
+            let pendingRecords = dayRecords.filter(t => t.status === 'Pending');
+            let completeRecords = dayRecords.filter(t => t.status === 'Complete');
+
+            let uniqueSubjects = [...new Set(pendingRecords.map(t => t.subject))];
+            
+            if(uniqueSubjects.length === 0) {
+                liveContainer.innerHTML = `<div class="text-center py-6 text-xs text-gray-600 bg-[#0a0f24] rounded-xl border border-gray-900">আজকের তারিখে কোনো রানিং টপিক প্ল্যান করা নেই। উপরের ইনজেক্টর থেকে অ্যাড করুন।</div>`;
+            } else {
+                uniqueSubjects.forEach(subName => {
+                    let subBlock = document.createElement('div');
+                    subBlock.className = "bg-[#0a0f24] border border-gray-900 p-4 rounded-xl space-y-2.5";
+                    
+                    let topicsHtml = `<h4 class="text-xs font-bold text-gray-300">🔷 ${subName}</h4><div class="space-y-1.5">`;
+
+                    let subPendingTopics = pendingRecords.filter(t => t.subject === subName);
+                    subPendingTopics.forEach(t => {
+                        let originBadge = "";
+                        if (t.originDate && t.originDate !== activeDate) {
+                            originBadge = `<span class="text-[9px] bg-rose-950/80 border border-rose-500/30 text-rose-400 font-bold px-1.5 py-0.5 rounded flex items-center gap-1 w-fit mt-1 animate-pulse">
+                                             <i class="fa-solid fa-triangle-exclamation text-[8px]"></i> Pending since: ${t.originDate}
+                                           </span>`;
+                        }
+
+                        topicsHtml += `
+                            <div class="flex justify-between items-center bg-[#070b1e] border border-gray-900/80 px-3 py-2 rounded-lg gap-3">
+                                <div class="flex flex-col min-w-0 flex-1">
+                                    <span class="text-xs text-gray-200 font-medium break-words">${t.topicName}</span>
+                                    <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                        <span class="text-[8px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-950/40 px-1 rounded">${t.category}</span>
+                                        ${originBadge}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <div class="relative flex items-center bg-[#0d1433] border border-gray-800 rounded px-1.5 py-0.5 text-gray-400 hover:text-white cursor-pointer" title="Move pending topic to another date">
+                                        <i class="fa-regular fa-calendar-days text-[10px] mr-1"></i>
+                                        <input type="date" onchange="movePendingTopicDate(${t.id}, this.value)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                                        <span class="text-[9px] font-bold uppercase tracking-wider">Shift</span>
+                                    </div>
+                                    <button onclick="openCompletePromptModal(${t.id}, '${t.topicName.replace(/'/g, "\'")}')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-2.5 py-1 rounded cursor-pointer">✅ Complete</button>
+                                    <button onclick="triggerPurgeFromLive(${t.id})" class="text-gray-600 hover:text-rose-400 text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>`;
+                    });
+
+                    topicsHtml += `</div>`;
+                    subBlock.innerHTML = topicsHtml;
+                    liveContainer.appendChild(subBlock);
+                });
+            }
+
+            if(completeRecords.length === 0) {
+                compContainer.innerHTML = `<div class="text-center py-4 text-[11px] text-gray-700 italic">আজকের কোনো টপিক এখনো কমপ্লিট করা হয়নি।</div>`;
+            } else {
+                completeRecords.forEach(t => {
+                    let compactLink = "";
+                    if(t.noteUrl) {
+                        compactLink = `<a href="${t.noteUrl}" target="_blank" class="text-cyan-400 hover:underline inline-flex items-center gap-0.5 ml-2"><i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> View Note</a>`;
+                    }
+                    compContainer.innerHTML += `
+                        <div class="flex justify-between items-center bg-[#060a1c] border border-emerald-950/40 px-3 py-2 rounded-lg">
+                            <div>
+                                <span class="text-xs text-gray-500 line-through">${t.topicName}</span>
+                                <span class="text-[9px] text-emerald-500 font-mono block">${t.subject} • Completed ${compactLink}</span>
+                            </div>
+                            <button onclick="updateTopicStatusToPending(${t.id})" class="text-[9px] bg-slate-900 border border-gray-800 text-gray-400 px-2 py-0.5 rounded cursor-pointer hover:text-white">⏳ Revert Pending</button>
+                        </div>`;
+                });
+            }
+
+            renderSpacedRepetitionRadar();
+        }
+
+        async function movePendingTopicDate(topicId, targetNewDate) {
+            if(!targetNewDate) return;
+            let foundTopic = null;
+
+            Object.keys(dbTopics).forEach(d => {
+                let idx = dbTopics[d].findIndex(t => t.id === topicId);
+                if(idx !== -1) {
+                    foundTopic = { ...dbTopics[d][idx] };
+                    if (!foundTopic.originDate) foundTopic.originDate = d;
+                    dbTopics[d].splice(idx, 1);
+                }
+            });
+
+            if(foundTopic) {
+                foundTopic.date = targetNewDate;
+                if(!dbTopics[targetNewDate]) dbTopics[targetNewDate] = [];
+                dbTopics[targetNewDate].push(foundTopic);
+                renderDailyLog();
+                try {
+                    showSyncIndicator("Shifting topic...");
+                    dbTopics = await apiPut(`/topics/${topicId}`, foundTopic);
+                } catch(e) { console.error('Move topic error:', e); }
+                finally { hideSyncIndicator(); }
+            }
+        }
+
+        async function updateTopicStatusToPending(id) {
+            let updatedTopic = null;
+            Object.keys(dbTopics).forEach(d => {
+                dbTopics[d].forEach(t => {
+                    if(t.id === id) {
+                        t.status = 'Pending';
+                        t.completionDate = null;
+                        t.reviewsDone = [];
+                        t.reviewHistoryStamps = {};
+                        t.customRevPendingOn = null;
+                        t.customReviewHistoryDates = [];
+                        updatedTopic = { ...t };
+                    }
+                });
+            });
+            renderDailyLog();
+            if (updatedTopic) {
+                try {
+                    showSyncIndicator("Reverting...");
+                    dbTopics = await apiPut(`/topics/${id}`, updatedTopic);
+                } catch(e) { console.error('Revert error:', e); }
+                finally { hideSyncIndicator(); }
+            }
+        }
+
+        // ================= DYNAMIC CUSTOM PURGE MODAL CONTROL =================
+        function triggerPurgeFromLive(id) {
+            pendingPurgeId = id;
+            document.getElementById('confirm-purge-btn').onclick = function() {
+                executePurgeLogic();
+            };
+            document.getElementById('purge-modal').classList.remove('hidden');
+        }
+
+        function openPurgeModal(id) {
+            pendingPurgeId = id;
+            document.getElementById('confirm-purge-btn').onclick = function() {
+                executePurgeLogic();
+            };
+            document.getElementById('purge-modal').classList.remove('hidden');
+        }
+
+        function closePurgeModal() {
+            document.getElementById('purge-modal').classList.add('hidden');
+            pendingPurgeId = null;
+        }
+
+        async function executePurgeLogic() {
+            if (!pendingPurgeId) return;
+            const idToDelete = pendingPurgeId;
+            Object.keys(dbTopics).forEach(d => {
+                dbTopics[d] = dbTopics[d].filter(t => t.id !== idToDelete);
+            });
+            closePurgeModal();
+            renderDailyLog();
+            if(!document.getElementById('view-progress').classList.contains('hidden')) {
+                renderProgressTab();
+            }
+            try {
+                showSyncIndicator("Deleting...");
+                dbTopics = await apiDelete(`/topics/${idToDelete}`);
+            } catch(e) { console.error('Delete error:', e); }
+            finally { hideSyncIndicator(); }
+        }
+
+        // ================= AUTOMATIC + CUSTOM SPACED REPETITION ENGINES =================
+        function renderSpacedRepetitionRadar() {
+            const container = document.getElementById('automatic-revision-list');
+            container.innerHTML = '';
+            
+            let today = new Date(activeDate); 
+            let count = 0;
+
+            Object.keys(dbTopics).forEach(dateStr => {
+                dbTopics[dateStr].forEach(topic => {
+                    if(topic.status === 'Complete' && topic.completionDate) {
+                        
+                        let radarLinkBadge = "";
+                        if (topic.noteUrl) {
+                            radarLinkBadge = `<a href="${topic.noteUrl}" target="_blank" class="text-[10px] text-cyan-400 hover:underline flex items-center gap-0.5 mt-1" style="width: fit-content;"><i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> View Attached Note</a>`;
+                        }
+
+                        if(topic.customRevPendingOn && topic.customRevPendingOn === activeDate) {
+                            count++;
+                            container.innerHTML += `
+                                <div class="bg-gradient-to-r from-purple-950/20 to-slate-950 border border-purple-500/40 p-3 rounded-xl flex justify-between items-center transition-all">
+                                    <div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[9px] font-extrabold uppercase bg-purple-600 text-white px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                <i class="fa-solid fa-circle text-[6px] text-purple-200 animate-ping"></i> Custom Rev Request
+                                            </span>
+                                            <span class="text-[9px] text-gray-500 font-mono">Pushed Today</span>
+                                        </div>
+                                        <h4 class="text-xs font-bold text-purple-200 mt-1">${topic.topicName}</h4>
+                                        <p class="text-[10px] text-gray-500">${topic.subject} • ${topic.category}</p>
+                                        ${radarLinkBadge}
+                                    </div>
+                                    <button onclick="approveCustomRadarReview(${topic.id})" class="text-[10px] bg-purple-600 hover:bg-purple-500 text-white font-extrabold px-3 py-1.5 rounded-lg cursor-pointer shadow-lg transition-all shrink-0">
+                                        ✅ Mark Reviewed
+                                    </button>
+                                </div>`;
+                        }
+
+                        let cDate = new Date(topic.completionDate);
+                        let diffTime = Math.abs(today - cDate);
+                        let diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                        if([1, 3, 7, 30].includes(diffDays)) {
+                            count++;
+                            if(!topic.reviewsDone) topic.reviewsDone = [];
+                            let isAlreadyReviewed = topic.reviewsDone.includes(diffDays);
+
+                            let reviewButtonArea = isAlreadyReviewed ? 
+                                `<button onclick="toggleMilestoneReview(${topic.id}, ${diffDays}, false)" class="text-[10px] bg-emerald-950 text-emerald-400 font-bold border border-emerald-500/30 px-2 py-1 rounded cursor-pointer hover:bg-rose-950 hover:text-rose-400 hover:border-rose-600 group transition-all duration-200 shrink-0">
+                                    <span class="group-hover:hidden"><i class="fa-solid fa-check-double"></i> Reviewed</span>
+                                    <span class="hidden group-hover:inline"><i class="fa-solid fa-rotate-left"></i> Undo</span>
+                                 </button>` :
+                                `<button onclick="toggleMilestoneReview(${topic.id}, ${diffDays}, true)" class="text-[10px] bg-amber-500 text-black font-extrabold px-3 py-1.5 rounded-lg hover:bg-amber-400 cursor-pointer shadow-md shrink-0">Mark Reviewed</button>`;
+
+                            container.innerHTML += `
+                                <div class="bg-slate-900/90 border ${isAlreadyReviewed ? 'border-emerald-950/60 bg-emerald-950/5' : 'border-amber-500/20'} p-3 rounded-xl flex justify-between items-center transition-all">
+                                    <div class="min-w-0 flex-1 pr-2">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[9px] font-extrabold uppercase ${isAlreadyReviewed ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-500 text-black'} px-1.5 py-0.5 rounded">Day ${diffDays} Rev</span>
+                                            <span class="text-[9px] text-gray-500 font-mono">Done: ${topic.completionDate}</span>
+                                        </div>
+                                        <h4 class="text-xs font-bold text-gray-200 mt-1 truncate ${isAlreadyReviewed ? 'line-through text-gray-500' : ''}" title="${topic.topicName}">${topic.topicName}</h4>
+                                        <p class="text-[10px] text-gray-500">${topic.subject} • ${topic.category}</p>
+                                        ${radarLinkBadge}
+                                    </div>
+                                    <div class="flex items-center">${reviewButtonArea}</div>
+                                </div>`;
+                        }
+                    }
+                });
+            });
+
+            if(count === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-xs text-gray-600 bg-slate-900/20 rounded-xl border border-gray-900">🎯 আজ কোনো রিভিশন ডিউ নেই। কাস্টম বা অটো রিকোয়েস্ট পাঠালে এখানে লাইভ লোড হবে।</div>`;
+            }
+        }
+
+        async function toggleMilestoneReview(topicId, milestoneDay, shouldMarkActive) {
+            let updatedTopic = null;
+            Object.keys(dbTopics).forEach(d => {
+                dbTopics[d].forEach(t => {
+                    if(t.id === topicId) {
+                        if(!t.reviewsDone) t.reviewsDone = [];
+                        if(!t.reviewHistoryStamps) t.reviewHistoryStamps = {};
+                        
+                        if(shouldMarkActive) {
+                            if(!t.reviewsDone.includes(milestoneDay)) {
+                                t.reviewsDone.push(milestoneDay);
+                                t.reviewHistoryStamps[milestoneDay] = activeDate; 
+                            }
+                            triggerSurprise();
+                        } else {
+                            t.reviewsDone = t.reviewsDone.filter(m => m !== milestoneDay);
+                            delete t.reviewHistoryStamps[milestoneDay];
+                        }
+                        updatedTopic = { ...t };
+                    }
+                });
+            });
+            renderDailyLog();
+            if (updatedTopic) {
+                try {
+                    showSyncIndicator("Saving review...");
+                    dbTopics = await apiPut(`/topics/${topicId}`, updatedTopic);
+                } catch(e) { console.error('Review save error:', e); }
+                finally { hideSyncIndicator(); }
+            }
+        }
+
+        async function sendTopicToCustomRadar(topicId) {
+            let updatedTopic = null;
+            Object.keys(dbTopics).forEach(d => {
+                dbTopics[d].forEach(t => {
+                    if(t.id === topicId) {
+                        t.customRevPendingOn = activeDate;
+                        updatedTopic = { ...t };
+                    }
+                });
+            });
+            triggerSurprise(4);
+            renderProgressTab();
+            if (updatedTopic) {
+                try {
+                    showSyncIndicator("Sending to radar...");
+                    dbTopics = await apiPut(`/topics/${topicId}`, updatedTopic);
+                } catch(e) { console.error('Custom radar error:', e); }
+                finally { hideSyncIndicator(); }
+            }
+        }
+
+        async function approveCustomRadarReview(topicId) {
+            let updatedTopic = null;
+            Object.keys(dbTopics).forEach(d => {
+                dbTopics[d].forEach(t => {
+                    if(t.id === topicId) {
+                        if(!t.customReviewHistoryDates) t.customReviewHistoryDates = [];
+                        t.customReviewHistoryDates.push(activeDate);
+                        t.customRevPendingOn = null;
+                        updatedTopic = { ...t };
+                        triggerSurprise();
+                    }
+                });
+            });
+            renderDailyLog();
+            if (updatedTopic) {
+                try {
+                    showSyncIndicator("Approving review...");
+                    dbTopics = await apiPut(`/topics/${topicId}`, updatedTopic);
+                } catch(e) { console.error('Approve review error:', e); }
+                finally { hideSyncIndicator(); }
+            }
+        }
+
+        // ================= TAB 3: ANALYTICS HUB & LIFETIME GENERATOR =================
+        function renderProgressTab() {
+            let completed = 0, pending = 0, totalReviewsDoneCount = 0;
+            let allCompletedRecords = [];
+            
+            Object.keys(dbTopics).forEach(d => {
+                dbTopics[d].forEach(t => {
+                    if(t.status === 'Complete') {
+                        completed++;
+                        allCompletedRecords.push(t);
+                        
+                        if(t.reviewsDone) totalReviewsDoneCount += t.reviewsDone.length;
+                        if(t.customReviewHistoryDates) totalReviewsDoneCount += t.customReviewHistoryDates.length;
+                    } else {
+                        pending++;
+                    }
+                });
+            });
+
+            document.getElementById('stat-topics-complete').innerText = completed;
+            document.getElementById('stat-topics-pending').innerText = pending;
+            document.getElementById('stat-reviews-done').innerText = totalReviewsDoneCount;
+            let total = completed + pending;
+            document.getElementById('stat-success-rate').innerText = total > 0 ? `${Math.round((completed / total) * 100)}%` : '0%';
+
+            // RENDER GRID CALENDAR
+            const cal = document.getElementById('calendar-grid');
+            cal.innerHTML = '';
+            for(let i = 29; i >= 0; i--) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                let dStr = d.toISOString().split('T')[0];
+                let dayNum = d.getDate();
+
+                let dayTopics = dbTopics[dStr] || [];
+                let dayComp = dayTopics.filter(t => t.status === 'Complete').length;
+
+                let btn = document.createElement('button');
+                let base = "w-9 h-9 text-[11px] font-mono rounded-lg border font-bold transition-all cursor-pointer flex items-center justify-center ";
+                
+                if(dStr === activeDate) btn.className = base + "bg-indigo-600 border-indigo-400 text-white shadow-lg";
+                else if(dayComp > 0) btn.className = base + "bg-emerald-950/80 border-emerald-500/50 text-emerald-400";
+                else btn.className = base + "bg-slate-900/60 border-gray-900 text-gray-500 hover:border-gray-700";
+
+                btn.innerText = dayNum;
+                btn.onclick = () => showHistoryForDate(dStr);
+                cal.appendChild(btn);
+            }
+
+            let groupedData = {};
+            allCompletedRecords.sort((a,b) => new Date(a.completionDate) - new Date(b.completionDate));
+            allCompletedRecords.forEach(t => {
+                if(!groupedData[t.category]) groupedData[t.category] = {};
+                if(!groupedData[t.category][t.subject]) groupedData[t.category][t.subject] = [];
+                groupedData[t.category][t.subject].push(t);
+            });
+
+            const lifetimeAchievedBox = document.getElementById('lifetime-achieved-container');
+            lifetimeAchievedBox.innerHTML = '';
+
+            if(allCompletedRecords.length === 0) {
+                lifetimeAchievedBox.innerHTML = `<div class="text-center py-8 text-xs text-gray-600 italic">এখনো কোনো টপিক লাইফটাইম তালিকায় যুক্ত হয়নি।</div>`;
+            } else {
+                cats.forEach(catName => {
+                    if(groupedData[catName]) {
+                        let catSection = document.createElement('div');
+                        catSection.className = "mb-4 border-b border-gray-900 pb-3 last:border-0";
+                        
+                        let catHeaderHtml = `
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
+                                <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-widest">${catName}</h4>
+                            </div>`;
+                        
+                        let subjectsHtml = `<div class="pl-3 space-y-3">`;
+
+                        Object.keys(groupedData[catName]).forEach(subName => {
+                            subjectsHtml += `
+                                <div class="bg-slate-950/40 border border-gray-900/60 rounded-xl p-3">
+                                    <h5 class="text-[11px] font-bold text-indigo-300 mb-2 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-book text-[9px] text-indigo-500"></i> ${subName}
+                                    </h5>
+                                    <div class="space-y-2">`;
+
+                            groupedData[catName][subName].forEach((t, serialIdx) => {
+                                let isAlreadyInRadar = t.customRevPendingOn !== null;
+                                let btnHtml = isAlreadyInRadar ? 
+                                    `<span class="text-[8px] bg-purple-950 text-purple-400 border border-purple-800 px-1.5 py-0.5 rounded font-bold animate-pulse"><i class="fa-solid fa-spinner"></i> In Radar</span>` : 
+                                    `<button onclick="sendTopicToCustomRadar(${t.id})" class="text-[9px] bg-[#0d1433] hover:bg-indigo-600 border border-indigo-800/40 text-indigo-300 hover:text-white px-2 py-0.5 rounded font-bold transition-all cursor-pointer">
+                                        🎯 Send to Radar
+                                     </button>`;
+
+                                let nodeBadgeHtml = "";
+                                if(t.noteUrl) {
+                                    nodeBadgeHtml = `<a href="${t.noteUrl}" target="_blank" class="text-[10px] bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 hover:text-white px-2 py-0.5 rounded flex items-center gap-1 font-bold transition-all shadow-sm w-fit" title="View PDF Note Document">
+                                                        <i class="fa-solid fa-file-pdf"></i> View Note
+                                                     </a>`;
+                                }
+
+                                subjectsHtml += `
+                                    <div class="flex justify-between items-center bg-[#070b1e]/90 border border-gray-900 p-2.5 rounded-lg gap-2 text-[11px]">
+                                        <div class="flex items-start gap-2 min-w-0 flex-1">
+                                            <span class="text-[10px] font-mono font-bold text-gray-500 bg-slate-950 px-1.5 py-0.5 rounded shrink-0">${serialIdx + 1}</span>
+                                            <div class="flex flex-col min-w-0">
+                                                <span class="text-gray-200 font-medium text-xs break-words" title="${t.topicName}">${t.topicName}</span>
+                                                <div class="mt-1">${nodeBadgeHtml}</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            ${btnHtml}
+                                            <span class="text-[9px] bg-emerald-950/30 text-emerald-400 border border-emerald-900/40 px-1.5 py-0.5 rounded font-mono" title="Completion Date">
+                                                ${t.completionDate}
+                                            </span>
+                                        </div>
+                                    </div>`;
+                            });
+
+                            subjectsHtml += `</div></div>`;
+                        });
+
+                        subjectsHtml += `</div>`;
+                        catSection.innerHTML = catHeaderHtml + subjectsHtml;
+                        lifetimeAchievedBox.appendChild(catSection);
+                    }
+                });
+            }
+
+            const uniqueRevisionBox = document.getElementById('lifetime-unique-revision-container');
+            uniqueRevisionBox.innerHTML = '';
+
+            let reviewedTopics = allCompletedRecords.filter(t => 
+                (t.reviewsDone && t.reviewsDone.length > 0) || (t.customReviewHistoryDates && t.customReviewHistoryDates.length > 0)
+            );
+
+            if(reviewedTopics.length === 0) {
+                uniqueRevisionBox.innerHTML = `<div class="text-center py-8 text-xs text-gray-600 italic">কোনো টপিকের রিভিশন হিস্ট্রি রেকর্ড করা হয়নি। রাডার থেকে কমপ্লিট করুন।</div>`;
+            } else {
+                cats.forEach(catName => {
+                    if(groupedData[catName]) {
+                        let catHasReviews = false;
+                        Object.keys(groupedData[catName]).forEach(subName => {
+                            let matches = groupedData[catName][subName].filter(t => reviewedTopics.includes(t));
+                            if(matches.length > 0) catHasReviews = true;
+                        });
+
+                        if(catHasReviews) {
+                            let catSection = document.createElement('div');
+                            catSection.className = "mb-4 border-b border-gray-900 pb-3 last:border-0";
+                            
+                            let catHeaderHtml = `
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>
+                                    <h4 class="text-xs font-bold text-amber-400 uppercase tracking-widest">${catName}</h4>
+                                </div>`;
+                            
+                            let subjectsHtml = `<div class="pl-3 space-y-3">`;
+
+                            Object.keys(groupedData[catName]).forEach(subName => {
+                                let subReviewedTopics = groupedData[catName][subName].filter(t => reviewedTopics.includes(t));
+                                
+                                if(subReviewedTopics.length > 0) {
+                                    subjectsHtml += `
+                                        <div class="bg-slate-950/40 border border-gray-900/60 rounded-xl p-3">
+                                            <h5 class="text-[11px] font-bold text-indigo-300 mb-2 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-book text-[9px] text-indigo-500"></i> ${subName}
+                                            </h5>
+                                            <div class="space-y-2">`;
+
+                                    subReviewedTopics.forEach((t, serialIdx) => {
+                                        let totalCount = (t.reviewsDone ? t.reviewsDone.length : 0) + (t.customReviewHistoryDates ? t.customReviewHistoryDates.length : 0);
+                                        let subTimelineHtml = `<div class="flex flex-wrap gap-1.5 mt-2">`;
+                                        
+                                        if(t.reviewsDone && t.reviewHistoryStamps) {
+                                            t.reviewsDone.forEach(m => {
+                                                let exactDate = t.reviewHistoryStamps[m] || 'N/A';
+                                                subTimelineHtml += `
+                                                    <div class="flex items-center text-[8px] bg-slate-950 border border-amber-500/20 rounded overflow-hidden">
+                                                        <span class="bg-amber-500/10 text-amber-400 px-1 py-0.5 font-bold border-r border-amber-500/20">Day ${m}</span>
+                                                        <span class="text-gray-400 px-1 py-0.5 font-mono">${exactDate}</span>
+                                                    </div>`;
+                                            });
+                                        }
+                                        if(t.customReviewHistoryDates) {
+                                            t.customReviewHistoryDates.forEach(exactDate => {
+                                                subTimelineHtml += `
+                                                    <div class="flex items-center text-[8px] bg-slate-950 border border-purple-500/30 rounded overflow-hidden">
+                                                        <span class="bg-purple-500/10 text-purple-300 px-1 py-0.5 font-bold border-r border-purple-500/30">Custom</span>
+                                                        <span class="text-purple-300 px-1 py-0.5 font-mono font-bold">${exactDate}</span>
+                                                    </div>`;
+                                            });
+                                        }
+                                        subTimelineHtml += `</div>`;
+
+                                        let reviewCardNodeHtml = "";
+                                        if (t.noteUrl) {
+                                            reviewCardNodeHtml = `
+                                                <a href="${t.noteUrl}" target="_blank" class="text-[10px] text-cyan-400 hover:underline flex items-center gap-0.5 mt-1.5 w-fit">
+                                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> View Attached Note
+                                                </a>`;
+                                        }
+
+                                        subjectsHtml += `
+                                            <div class="bg-[#070b1e]/90 border border-gray-900 p-2.5 rounded-lg flex justify-between items-start gap-3">
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <span class="text-[10px] font-mono font-bold text-gray-500 bg-slate-950 px-1.5 py-0.5 rounded shrink-0">${serialIdx + 1}</span>
+                                                        <h4 class="text-xs font-bold text-gray-200 truncate" title="${t.topicName}">${t.topicName}</h4>
+                                                    </div>
+                                                    ${reviewCardNodeHtml}
+                                                    ${subTimelineHtml}
+                                                </div>
+                                                <span class="text-[10px] bg-gradient-to-r from-amber-950 to-orange-950 text-amber-400 border border-amber-500/30 px-2 py-1 rounded font-bold whitespace-nowrap shrink-0">
+                                                    <i class="fa-solid fa-repeat text-[9px] mr-1"></i> Total: ${totalCount}
+                                                </span>
+                                            </div>`;
+                                    });
+
+                                    subjectsHtml += `</div></div>`;
+                                }
+                            });
+
+                            subjectsHtml += `</div>`;
+                            catSection.innerHTML = catHeaderHtml + subjectsHtml;
+                            uniqueRevisionBox.appendChild(catSection);
+                        }
+                    }
+                });
+            }
+
+            const catSummary = document.getElementById('category-summary-list');
+            catSummary.innerHTML = '';
+            cats.forEach(cName => {
+                let catTotalCount = 0;
+                let catCompletedCount = 0;
+                let lastAddedTopic = "No topics logged yet";
+
+                Object.keys(dbTopics).forEach(dStr => {
+                    dbTopics[dStr].forEach(t => {
+                        if(t.category === cName) {
+                            catTotalCount++;
+                            if(t.status === 'Complete') catCompletedCount++;
+                            lastAddedTopic = t.topicName;
+                        }
+                    });
+                });
+
+                let itemCard = document.createElement('div');
+                itemCard.className = "bg-[#0a0f24] border border-gray-900 p-5 rounded-2xl flex flex-col justify-between";
+                itemCard.innerHTML = `
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-200 mb-1">📁 ${cName}</h4>
+                        <p class="text-[11px] text-gray-400 font-medium mt-2">
+                            Total Topics: <span class="text-indigo-400 font-bold">${catTotalCount}</span> 
+                            | Completed: <span class="text-emerald-400 font-bold">${catCompletedCount}</span>
+                        </p>
+                    </div>
+                    <p class="text-[11px] text-gray-500 italic mt-4 truncate border-t border-gray-900 pt-2">Last: ${lastAddedTopic}</p>
+                `;
+                catSummary.appendChild(itemCard);
+            });
+
+            renderMasterCleanerLedger();
+        }
+
+        function renderMasterCleanerLedger() {
+            const tbody = document.getElementById('master-cleaner-tbody');
+            tbody.innerHTML = '';
+
+            let allRecords = [];
+            Object.keys(dbTopics).forEach(dStr => {
+                dbTopics[dStr].forEach(t => { allRecords.push(t); });
+            });
+
+            allRecords.sort((a,b) => b.id - a.id);
+
+            if(allRecords.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-600 italic">No historical records available to purge.</td></tr>`;
+                return;
+            }
+
+            allRecords.forEach(t => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 transition-colors";
+                let statusColor = t.status === 'Complete' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800';
+                
+                let linkNodeText = "—";
+                if(t.noteUrl) {
+                    linkNodeText = `<a href="${t.noteUrl}" target="_blank" class="text-cyan-400 hover:underline font-semibold flex items-center gap-1 justify-center"><i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> View Link</a>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-3 text-gray-400 font-mono">${t.date}</td>
+                    <td class="p-3 font-semibold text-indigo-400">${t.category}</td>
+                    <td class="p-3 text-gray-300">${t.subject}</td>
+                    <td class="p-3 text-gray-400 max-w-[200px] truncate" title="${t.topicName}">${t.topicName}</td>
+                    <td class="p-3 text-center font-medium">${linkNodeText}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${statusColor}">${t.status}</span>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="openPurgeModal(${t.id})" class="bg-rose-950/60 hover:bg-rose-600 text-rose-400 hover:text-white px-2.5 py-1 border border-rose-900 rounded text-[10px] font-bold transition-all cursor-pointer">
+                            <i class="fa-solid fa-trash-can"></i> Purge
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showHistoryForDate(dateStr) {
+            activeDate = dateStr;
+            document.getElementById('date-picker').value = dateStr;
+            const box = document.getElementById('selected-day-history-box');
+            const content = document.getElementById('history-box-content');
+            
+            box.classList.remove('hidden');
+            document.getElementById('history-box-title').innerText = `Topics Logged on: ${dateStr}`;
+            content.innerHTML = '';
+            
+            let list = dbTopics[dateStr] || [];
+            if(list.length === 0) {
+                content.innerHTML = `<p class="text-gray-600 text-xs py-2">এই তারিখে কোনো টপিক রেকর্ড করা হয়নি।</p>`;
+            } else {
+                list.forEach(t => {
+                    let isC = t.status === 'Complete';
+                    let linked = t.noteUrl ? `<a href="${t.noteUrl}" target="_blank" class="text-cyan-400 block mt-1 hover:underline text-[10px]"><i class="fa-solid fa-link"></i> Linked Note</a>` : "";
+                    content.innerHTML += `
+                        <div class="bg-[#070b1e] p-3 rounded-lg border border-gray-900 flex justify-between items-center">
+                            <div>
+                                <span class="text-[9px] font-bold text-indigo-400 block uppercase">${t.subject}</span>
+                                <span class="text-xs text-gray-300">${t.topicName}</span>
+                                ${linked}
+                            </div>
+                            <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded ${isC ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'}\">${t.status}</span>
+                        </div>`;
+                });
+            }
+            populateInjectorSubjects();
+            renderProgressTab();
+        }
+    </script>
+</body>
+</html>
