@@ -3429,6 +3429,29 @@ window.onload=async function(){
     const [r,t]=await Promise.all([apiGet('/routine'),apiGet('/topics')]);
     dbRoutine=r; dbTopics=t;
   } catch(e){ dbRoutine=defaultRoutine; dbTopics={}; }
+  // Load KV data from server
+  try{
+    const [pd, pt, sk, fc, pm] = await Promise.all([
+      kvGet(POMO_PM_KEY),
+      kvGet(POMO_TOPICS_KEY),
+      kvGet(SK_KEY),
+      kvGet(FC_KEY),
+      kvGet(PM_STORAGE_KEY)
+    ]);
+    if(pd){
+      if(pd.date !== new Date().toISOString().split('T')[0])
+        pomoData = { date: new Date().toISOString().split('T')[0], sessions: [], focusMinutes: parseInt(pd.focusMinutes||25), restMinutes: parseInt(pd.restMinutes||5) };
+      else pomoData = pd;
+    }
+    if(pt) pomoTopicList = pt;
+    if(sk) skData = sk;
+    if(fc){ fcCardsCache = fc; fcCards = fc; }
+    if(pm) pmCache = pm;
+    pomoTimeLeft  = pomoData.focusMinutes * 60;
+    pomoTotalSecs = pomoData.focusMinutes * 60;
+    pomoSyncTopics();
+    pomoUpdateDisplay();
+  }catch(e){ console.warn('KV load error:', e); }
   hideSync();
   renderRoutine(); setupInjector(); renderDaily(); skRender(); fcUpdateNavBadge();
 };
@@ -3988,9 +4011,13 @@ const POMO_PM_KEY     = 'pm_data_v2';
 const POMO_TOPICS_KEY = 'pm_topics_v1';
 const POMO_CIRCUMFERENCE = 2 * Math.PI * 110; // r=110
 
+// KV API helpers
+async function kvGet(key){ try{ const r=await apiGet('/kv/'+key); return r.data; }catch(e){ return null; } }
+async function kvPut(key,val){ try{ await apiPut('/kv/'+key,val); }catch(e){} }
+
 // State
-let pomoData       = pomoLoadData();
-let pomoTopicList  = pomoLoadTopics();
+let pomoData       = { date: new Date().toISOString().split('T')[0], sessions: [], focusMinutes: 25, restMinutes: 5 };
+let pomoTopicList  = [];
 let pomoInterval   = null;
 let pomoIsRunning  = false;
 let pomoIsRest     = false;
@@ -4002,23 +4029,25 @@ let pomoCurTopic   = '';
 function pomoGetTodayStr(){ return new Date().toISOString().split('T')[0]; }
 
 function pomoLoadData(){
-  try{
-    const r = localStorage.getItem(POMO_PM_KEY);
-    if(r){
-      const d = JSON.parse(r);
-      if(d.date !== new Date().toISOString().split('T')[0])
-        return { date: new Date().toISOString().split('T')[0], sessions: [], focusMinutes: parseInt(d.focusMinutes||25), restMinutes: parseInt(d.restMinutes||5) };
-      return d;
-    }
-  }catch(e){}
   return { date: new Date().toISOString().split('T')[0], sessions: [], focusMinutes: 25, restMinutes: 5 };
 }
-function pomoSaveData(d){ localStorage.setItem(POMO_PM_KEY, JSON.stringify(d)); }
-function pomoLoadTopics(){
-  try{ const r=localStorage.getItem(POMO_TOPICS_KEY); if(r) return JSON.parse(r); }catch(e){}
-  return [];
+async function pomoSaveData(d){ await kvPut(POMO_PM_KEY, d); }
+function pomoLoadTopics(){ return []; }
+async function pomoSaveTopics(t){ await kvPut(POMO_TOPICS_KEY, t); }
+async function pomoInitFromServer(){
+  const d = await kvGet(POMO_PM_KEY);
+  if(d){
+    if(d.date !== new Date().toISOString().split('T')[0])
+      pomoData = { date: new Date().toISOString().split('T')[0], sessions: [], focusMinutes: parseInt(d.focusMinutes||25), restMinutes: parseInt(d.restMinutes||5) };
+    else pomoData = d;
+  }
+  const t = await kvGet(POMO_TOPICS_KEY);
+  if(t) pomoTopicList = t;
+  pomoTimeLeft  = pomoData.focusMinutes * 60;
+  pomoTotalSecs = pomoData.focusMinutes * 60;
+  pomoSyncTopics();
+  pomoUpdateDisplay();
 }
-function pomoSaveTopics(t){ localStorage.setItem(POMO_TOPICS_KEY, JSON.stringify(t)); }
 
 // Build the live topic list for Pomodoro:
 // Only shows topics that are currently actionable today:
@@ -4524,6 +4553,7 @@ function pomoRingBell(){
 
 
 const SK_KEY = 'sk_v1';
+let skData = null; // loaded from server on init
 const SK_MILESTONES = [
   {days:3,  emoji:'🌱', name:'Seedling',  label:'3-day streak'},
   {days:7,  emoji:'🔥', name:'On Fire',   label:'7-day streak'},
@@ -4535,10 +4565,9 @@ const SK_MILESTONES = [
 ];
 
 function skGet(){
-  try{ const r=localStorage.getItem(SK_KEY); if(r) return JSON.parse(r); }catch(e){}
-  return {cur:0,best:0,lastDate:null,activeDates:[],totalTopics:0,milestones:[]};
+  return skData || {cur:0,best:0,lastDate:null,activeDates:[],totalTopics:0,milestones:[]};
 }
-function skSave(d){ localStorage.setItem(SK_KEY,JSON.stringify(d)); }
+function skSave(d){ skData=d; kvPut(SK_KEY,d); }
 function skDayDiff(a,b){
   return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/(864e5));
 }
@@ -4696,15 +4725,16 @@ function skMilestoneCelebration(){
 ══════════════════════════════════════════ */
 const FC_KEY = 'fc_cards_v1';
 const FC_SESSION_KEY = 'fc_session_v1';
+let fcCardsCache = null; // loaded from server on init
 
 // Card structure:
 // { id, q, a, category, subject, topicName, createdDate,
 //   nextDue, interval, ease, reps, sessionDoneToday }
 
-function fcLoad(){ try{ const r=localStorage.getItem(FC_KEY); return r?JSON.parse(r):[]; }catch(e){ return []; } }
-function fcSave(cards){ localStorage.setItem(FC_KEY, JSON.stringify(cards)); }
+function fcLoad(){ return fcCardsCache || []; }
+function fcSave(cards){ fcCardsCache=cards; kvPut(FC_KEY, cards); }
 
-let fcCards = fcLoad();
+let fcCards = [];  // loaded async in init
 let fcSessionCards = [];   // cards due today, in session order
 let fcSessionIdx = 0;
 let fcCardFlipped = false;
@@ -5295,11 +5325,9 @@ let pmCurrentId = null;
 let pmCurrentTopicData = null;
 let pmTempItems = []; // working copy while modal is open
 
-function pmLoadAll(){
-  try{ const r=localStorage.getItem(PM_STORAGE_KEY); if(r) return JSON.parse(r); }catch(e){}
-  return {};
-}
-function pmSaveAll(data){ localStorage.setItem(PM_STORAGE_KEY, JSON.stringify(data)); }
+let pmCache = null; // loaded from server on init
+function pmLoadAll(){ return pmCache || {}; }
+function pmSaveAll(data){ pmCache=data; kvPut(PM_STORAGE_KEY, data); }
 
 function pmGetPlan(topicId){
   const all = pmLoadAll();

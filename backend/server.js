@@ -78,8 +78,17 @@ const routineSchema = new mongoose.Schema({
   routine: { type: mongoose.Schema.Types.Mixed, required: true }
 }, { timestamps: true });
 
+// Generic Key-Value Store Schema (for pomodoro, streak, flashcards, planmap)
+const kvSchema = new mongoose.Schema({
+  userId: { type: String, default: 'default' },
+  key:    { type: String, required: true },
+  value:  { type: mongoose.Schema.Types.Mixed, required: true }
+}, { timestamps: true });
+kvSchema.index({ userId: 1, key: 1 }, { unique: true });
+
 const Topic = mongoose.model('Topic', topicSchema);
 const Routine = mongoose.model('Routine', routineSchema);
+const KV = mongoose.model('KV', kvSchema);
 
 // ===================== HELPER =====================
 async function getAllTopicsGrouped() {
@@ -222,6 +231,32 @@ app.put('/api/routine', async (req, res) => {
       { upsert: true, new: true }
     );
     res.json({ success: true, data: routineData });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===================== ROUTES: KEY-VALUE STORE (pomodoro, streak, flashcards, planmap) =====================
+
+// GET /api/kv/:key
+app.get('/api/kv/:key', async (req, res) => {
+  try {
+    const doc = await KV.findOne({ userId: 'default', key: req.params.key }).lean();
+    res.json({ success: true, data: doc ? doc.value : null });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/kv/:key
+app.put('/api/kv/:key', async (req, res) => {
+  try {
+    await KV.findOneAndUpdate(
+      { userId: 'default', key: req.params.key },
+      { userId: 'default', key: req.params.key, value: req.body },
+      { upsert: true, new: true }
+    );
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
