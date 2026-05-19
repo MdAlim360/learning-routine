@@ -295,7 +295,440 @@ body::before {
 }
 .pm-empty-hint i { font-size: 22px; opacity: 0.2; display: block; margin-bottom: 8px; }
 
-/* ─── AI MOTIVATOR MODAL ─── */
+/* ─── EXAM MODAL ─── */
+.exam-overlay {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.82);
+  backdrop-filter:blur(12px);
+  z-index:10000;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity .3s;
+}
+.exam-overlay.visible { opacity:1; pointer-events:all; }
+
+.exam-card {
+  background:var(--card);
+  border:1px solid rgba(212,168,67,.25);
+  border-radius:28px;
+  max-width:580px; width:94%;
+  max-height:90vh; overflow-y:auto;
+  position:relative;
+  box-shadow:0 0 80px rgba(212,168,67,.12), 0 30px 70px rgba(0,0,0,.6);
+  transform:scale(.94) translateY(16px);
+  transition:transform .4s cubic-bezier(.34,1.2,.64,1);
+}
+.exam-overlay.visible .exam-card { transform:scale(1) translateY(0); }
+
+.exam-topbar {
+  height:3px;
+  background:linear-gradient(90deg,var(--gold),var(--accent2),var(--teal));
+  border-radius:28px 28px 0 0;
+}
+.exam-header {
+  padding:24px 28px 18px;
+  border-bottom:1px solid var(--border);
+}
+.exam-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:10px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--gold2); font-weight:700;
+  background:rgba(212,168,67,.1); border:1px solid rgba(212,168,67,.22);
+  padding:4px 12px; border-radius:999px; margin-bottom:10px;
+}
+.exam-topic-title {
+  font-family:'Instrument Serif',serif;
+  font-size:20px; font-weight:400; color:var(--text); line-height:1.3;
+  margin-bottom:4px;
+}
+.exam-topic-meta { font-size:11px; color:var(--muted); }
+
+/* Step: Choose */
+.exam-choose-step { padding:24px 28px; }
+.exam-choose-title {
+  font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px;
+}
+.exam-choose-sub { font-size:12px; color:var(--muted); margin-bottom:20px; line-height:1.6; }
+
+.exam-choose-btns { display:flex; flex-direction:column; gap:10px; }
+.exam-opt-btn {
+  display:flex; align-items:center; gap:14px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:16px; padding:16px 18px; cursor:pointer;
+  transition:all .2s; font-family:inherit; text-align:left; width:100%;
+}
+.exam-opt-btn:hover { border-color:var(--accent2); background:rgba(124,106,247,.06); }
+.exam-opt-icon {
+  width:40px; height:40px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0;
+}
+.exam-opt-btn .exam-opt-title { font-size:13px; font-weight:700; color:var(--text); }
+.exam-opt-btn .exam-opt-desc  { font-size:11px; color:var(--muted); margin-top:2px; }
+.exam-skip-btn {
+  margin-top:16px; background:none; border:1px solid var(--border);
+  color:var(--muted2); border-radius:12px; padding:10px 20px;
+  font-family:inherit; font-size:12px; cursor:pointer; width:100%;
+  transition:all .2s;
+}
+.exam-skip-btn:hover { background:var(--bg3); color:var(--text); }
+
+/* Step: Config */
+.exam-config-step { padding:24px 28px; }
+.exam-config-row {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px; margin-bottom:10px;
+}
+.exam-config-label { font-size:12px; color:var(--text); font-weight:600; }
+.exam-config-sub   { font-size:10px; color:var(--muted); margin-top:2px; }
+.exam-num-ctrl {
+  display:flex; align-items:center; gap:10px;
+}
+.exam-num-btn {
+  width:28px; height:28px; border-radius:8px;
+  background:var(--bg3); border:1px solid var(--border);
+  color:var(--text); font-size:14px; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .15s;
+}
+.exam-num-btn:hover { background:rgba(124,106,247,.15); border-color:rgba(124,106,247,.3); }
+.exam-num-val {
+  font-size:16px; font-weight:700; color:var(--accent2);
+  min-width:28px; text-align:center;
+}
+.exam-custom-input {
+  background:var(--bg); border:1px solid var(--border2);
+  border-radius:10px; padding:8px 12px; color:var(--text);
+  font-family:inherit; font-size:12px; outline:none;
+  width:100%; margin-top:8px; transition:border-color .2s;
+}
+.exam-custom-input:focus { border-color:rgba(124,106,247,.5); }
+.exam-start-btn {
+  width:100%; margin-top:18px;
+  background:linear-gradient(135deg,var(--gold),#b8860b);
+  color:#000; border:none; border-radius:14px; padding:13px;
+  font-family:inherit; font-size:14px; font-weight:800; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 4px 20px rgba(212,168,67,.3); transition:opacity .2s, transform .1s;
+}
+.exam-start-btn:hover { opacity:.9; }
+.exam-start-btn:active { transform:scale(.98); }
+
+/* Step: Exam */
+.exam-run-step { padding:24px 28px; }
+.exam-progress-bar {
+  height:4px; background:var(--bg3); border-radius:99px; overflow:hidden; margin-bottom:20px;
+}
+.exam-progress-fill {
+  height:100%; border-radius:99px;
+  background:linear-gradient(90deg,var(--gold),var(--teal));
+  transition:width .4s ease;
+}
+.exam-q-counter {
+  font-size:10px; color:var(--muted); text-align:right; margin-bottom:12px;
+  letter-spacing:.08em;
+}
+.exam-question {
+  font-family:'Instrument Serif',serif;
+  font-size:18px; font-weight:400; color:var(--text);
+  line-height:1.5; margin-bottom:20px;
+  background:rgba(212,168,67,.04); border:1px solid rgba(212,168,67,.12);
+  border-radius:14px; padding:18px 20px;
+}
+.exam-options { display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+.exam-option {
+  display:flex; align-items:center; gap:12px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:12px 16px; cursor:pointer;
+  transition:all .2s; font-size:13px; color:var(--text);
+}
+.exam-option:hover:not(.answered) { border-color:var(--accent2); background:rgba(124,106,247,.07); }
+.exam-option.correct  { background:rgba(62,207,170,.1);  border-color:rgba(62,207,170,.4);  color:var(--teal); }
+.exam-option.wrong    { background:rgba(224,90,122,.08); border-color:rgba(224,90,122,.35); color:var(--rose); }
+.exam-option.revealed { background:rgba(62,207,170,.06); border-color:rgba(62,207,170,.2);  color:var(--teal); opacity:.7; }
+.exam-option-key {
+  width:24px; height:24px; border-radius:7px;
+  background:var(--bg3); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:700; flex-shrink:0; color:var(--muted2);
+}
+.exam-option.correct  .exam-option-key { background:var(--teal); border-color:var(--teal); color:#000; }
+.exam-option.wrong    .exam-option-key { background:var(--rose); border-color:var(--rose); color:#fff; }
+.exam-option.revealed .exam-option-key { background:rgba(62,207,170,.2); }
+.exam-explain {
+  background:rgba(124,106,247,.07); border:1px solid rgba(124,106,247,.18);
+  border-radius:12px; padding:12px 16px; font-size:12px; color:var(--muted2);
+  line-height:1.6; margin-bottom:14px; display:none;
+}
+.exam-next-btn {
+  width:100%; background:linear-gradient(135deg,var(--accent),#5a4fd4);
+  color:#fff; border:none; border-radius:12px; padding:11px;
+  font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 16px rgba(124,106,247,.3); transition:opacity .2s;
+  display:none;
+}
+.exam-next-btn:hover { opacity:.9; }
+.exam-loading-q {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  color:var(--muted); font-size:12px; min-height:160px;
+}
+
+/* Step: Result */
+.exam-result-step { padding:28px 28px 24px; text-align:center; }
+.exam-result-emoji { font-size:52px; margin-bottom:12px; }
+.exam-result-score {
+  font-family:'Instrument Serif',serif; font-size:56px; line-height:1;
+  background:linear-gradient(135deg,var(--gold2),var(--teal));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.exam-result-grade { font-size:15px; font-weight:700; margin-top:6px; color:var(--text); }
+.exam-result-sub   { font-size:12px; color:var(--muted); margin-top:4px; }
+.exam-result-xp {
+  display:inline-flex; align-items:center; gap:6px; margin:16px auto;
+  background:rgba(212,168,67,.1); border:1px solid rgba(212,168,67,.22);
+  color:var(--gold2); border-radius:999px; padding:6px 16px;
+  font-size:12px; font-weight:700;
+}
+.exam-result-breakdown {
+  display:flex; gap:10px; justify-content:center; margin:14px 0 20px; flex-wrap:wrap;
+}
+.exam-rb-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:12px 16px; min-width:80px;
+  text-align:center;
+}
+.exam-rb-num { font-size:22px; font-weight:700; font-family:'Instrument Serif',serif; }
+.exam-rb-lbl { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }
+.exam-result-proceed {
+  width:100%; background:linear-gradient(135deg,var(--teal),#2a9e82);
+  color:#000; border:none; border-radius:14px; padding:13px;
+  font-family:inherit; font-size:13px; font-weight:800; cursor:pointer;
+  box-shadow:0 4px 18px rgba(62,207,170,.3); transition:opacity .2s;
+}
+.exam-result-proceed:hover { opacity:.9; }
+.exam-result-retry {
+  width:100%; margin-top:8px; background:none;
+  border:1px solid var(--border); color:var(--muted2); border-radius:14px; padding:10px;
+  font-family:inherit; font-size:12px; cursor:pointer; transition:all .2s;
+}
+.exam-result-retry:hover { background:var(--bg3); color:var(--text); }
+
+/* Exam score badge in daily log & progress */
+.exam-score-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:10px; font-weight:700;
+  background:rgba(212,168,67,.1); border:1px solid rgba(212,168,67,.2);
+  color:var(--gold2); border-radius:999px; padding:3px 10px;
+  cursor:pointer; transition:background .2s;
+}
+.exam-score-badge:hover { background:rgba(212,168,67,.2); }
+
+/* ─── AI MONITOR TAB ─── */
+.aim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+@media(max-width:860px){ .aim-grid{ grid-template-columns:1fr; } }
+.aim-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 22px; position: relative; overflow: hidden;
+}
+.aim-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--rose), var(--accent2), var(--teal));
+  opacity:0; transition: opacity .3s;
+}
+.aim-card:hover::before { opacity:1; }
+.aim-card-title {
+  font-size:10px; text-transform:uppercase; letter-spacing:.16em;
+  font-weight:700; color:var(--muted2); margin-bottom:16px;
+  display:flex; align-items:center; gap:7px;
+}
+.aim-card-title i { color:var(--accent2); }
+
+/* Status pulse */
+.aim-status-row {
+  display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  background: var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:12px 16px;
+}
+.aim-status-dot {
+  width:10px; height:10px; border-radius:50%; flex-shrink:0;
+  animation: aimPulse 2s ease infinite;
+}
+.aim-status-dot.active { background: var(--teal); box-shadow: 0 0 12px var(--teal); }
+.aim-status-dot.idle   { background: var(--gold2); box-shadow: 0 0 12px var(--gold2); }
+.aim-status-dot.alarm  { background: var(--rose); box-shadow: 0 0 12px var(--rose); animation: aimAlarm .5s ease infinite; }
+@keyframes aimPulse { 0%,100%{opacity:.6;transform:scale(.9)} 50%{opacity:1;transform:scale(1.1)} }
+@keyframes aimAlarm { 0%,100%{opacity:1} 50%{opacity:.3} }
+.aim-status-text { font-size:13px; font-weight:600; color:var(--text); }
+.aim-status-sub  { font-size:10px; color:var(--muted); margin-top:1px; }
+
+/* AI Chat Box */
+.aim-chat-box {
+  background: var(--bg); border:1px solid var(--border);
+  border-radius:14px; padding:16px; min-height:120px; max-height:220px;
+  overflow-y:auto; margin-bottom:14px; position:relative;
+}
+.aim-msg {
+  display:flex; gap:10px; margin-bottom:14px; animation: aimFadeIn .4s ease;
+}
+@keyframes aimFadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+.aim-msg-avatar {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px;
+}
+.aim-msg-avatar.ai { background:rgba(124,106,247,.15); border:1px solid rgba(124,106,247,.25); color:var(--accent2); }
+.aim-msg-bubble {
+  flex:1; background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:10px 14px; font-size:12px; line-height:1.6; color:var(--text);
+}
+.aim-msg-bubble.ai-bubble {
+  background: rgba(124,106,247,.06); border-color: rgba(124,106,247,.18);
+}
+.aim-msg-bubble.force-bubble {
+  background: rgba(224,90,122,.07); border-color: rgba(224,90,122,.2); color: var(--rose);
+  font-weight:600;
+}
+.aim-msg-time { font-size:9px; color:var(--muted); margin-top:4px; }
+
+/* Force button */
+.aim-force-btn {
+  width:100%; background:linear-gradient(135deg,var(--rose),#c44);
+  color:#fff; border:none; border-radius:12px; padding:11px;
+  font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  margin-top:8px; transition: opacity .2s, transform .1s;
+  box-shadow: 0 4px 18px rgba(224,90,122,.3);
+}
+.aim-force-btn:hover { opacity:.9; }
+.aim-force-btn:active { transform:scale(.98); }
+.aim-ask-btn {
+  width:100%; background:rgba(124,106,247,.12);
+  color:var(--accent2); border:1px solid rgba(124,106,247,.25); border-radius:12px; padding:10px;
+  font-family:inherit; font-size:12px; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  margin-top:8px; transition: background .2s;
+}
+.aim-ask-btn:hover { background:rgba(124,106,247,.2); }
+
+/* Report tabs */
+.aim-report-tabs {
+  display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap;
+}
+.aim-report-tab {
+  background:var(--bg2); border:1px solid var(--border);
+  color:var(--muted2); border-radius:8px; padding:7px 14px;
+  font-size:11px; font-weight:600; cursor:pointer; font-family:inherit;
+  transition: all .2s; display:flex; align-items:center; gap:6px;
+}
+.aim-report-tab.active {
+  background:rgba(124,106,247,.12); border-color:rgba(124,106,247,.28); color:var(--accent2);
+}
+
+/* Report score card */
+.aim-score-big {
+  text-align:center; padding:20px 0 12px;
+}
+.aim-score-num {
+  font-family:'Instrument Serif',serif; font-size:56px; line-height:1;
+  background: linear-gradient(135deg, var(--teal), var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.aim-score-grade {
+  font-size:14px; font-weight:700; margin-top:6px; color:var(--text);
+}
+.aim-score-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* Report bars */
+.aim-report-bars { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+.aim-bar-row { display:flex; align-items:center; gap:10px; }
+.aim-bar-label { font-size:11px; color:var(--muted2); width:80px; flex-shrink:0; }
+.aim-bar-track { flex:1; height:7px; background:var(--bg3); border-radius:99px; overflow:hidden; }
+.aim-bar-fill  { height:100%; border-radius:99px; transition:width .6s ease; }
+.aim-bar-val   { font-size:11px; font-weight:700; color:var(--text); width:40px; text-align:right; flex-shrink:0; }
+
+/* History list */
+.aim-history-list { display:flex; flex-direction:column; gap:8px; }
+.aim-history-item {
+  display:flex; align-items:center; gap:12px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:10px 14px;
+}
+.aim-hi-date { font-size:10px; color:var(--muted); width:70px; flex-shrink:0; }
+.aim-hi-score {
+  font-size:13px; font-weight:700; color:var(--accent2);
+  width:36px; text-align:center; flex-shrink:0;
+}
+.aim-hi-bar { flex:1; height:5px; background:var(--bg3); border-radius:99px; overflow:hidden; }
+.aim-hi-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--teal)); }
+.aim-hi-grade { font-size:10px; font-weight:600; width:28px; text-align:right; flex-shrink:0; }
+
+/* Monthly compare grid */
+.aim-compare-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.aim-compare-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:12px 10px; text-align:center;
+}
+.aim-compare-card.best { background:rgba(62,207,170,.06); border-color:rgba(62,207,170,.2); }
+.aim-compare-month { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; }
+.aim-compare-num {
+  font-family:'Instrument Serif',serif; font-size:28px; color:var(--teal); line-height:1.2;
+}
+.aim-compare-grade { font-size:10px; font-weight:700; margin-top:2px; }
+
+/* Streak calendar */
+.aim-streak-row {
+  display:flex; align-items:center; gap:8px; margin-bottom:12px;
+  background:rgba(62,207,170,.06); border:1px solid rgba(62,207,170,.15);
+  border-radius:12px; padding:12px 16px;
+}
+.aim-streak-num {
+  font-family:'Instrument Serif',serif; font-size:40px; color:var(--teal); line-height:1;
+}
+.aim-streak-info { flex:1; }
+.aim-streak-label { font-size:13px; font-weight:700; color:var(--text); }
+.aim-streak-sub   { font-size:10px; color:var(--muted); }
+
+.aim-week-dots { display:flex; gap:6px; margin-top:10px; }
+.aim-week-dot {
+  flex:1; height:32px; border-radius:8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-size:9px; gap:3px; border:1px solid var(--border);
+  background:var(--bg2);
+}
+.aim-week-dot.done { background:rgba(62,207,170,.1); border-color:rgba(62,207,170,.3); color:var(--teal); }
+.aim-week-dot.today{ border-color:var(--accent2); }
+.aim-wd-label { font-size:8px; color:var(--muted); }
+
+/* AI Report card */
+.aim-ai-report {
+  background:rgba(124,106,247,.05); border:1px solid rgba(124,106,247,.18);
+  border-radius:14px; padding:18px; margin-bottom:16px;
+}
+.aim-ai-report-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:12px;
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--accent2);
+}
+.aim-ai-report-body {
+  font-size:12px; color:var(--text); line-height:1.7; white-space:pre-wrap;
+}
+.aim-ai-report-loading {
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; color:var(--muted); padding:8px 0;
+}
+
+/* Full-width card */
+.aim-full { grid-column: 1 / -1; }
+
+.aim-section-hdr {
+  margin-bottom:28px;
+}
+.aim-section-hdr h2 {
+  font-family:'Instrument Serif',serif; font-size:26px; font-weight:400;
+}
+.aim-section-hdr p { font-size:12px; color:var(--muted); margin-top:4px; }
+
 .ai-motivator-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.7);
@@ -2742,6 +3175,354 @@ body::before {
   border-radius: 16px;
 }
 .fc-lib-no-results i { font-size: 28px; opacity: .2; display: block; margin-bottom: 12px; }
+
+/* ══════════════════════════════════════════
+   GAMIFICATION — XP / LEVEL / LEADERBOARD
+══════════════════════════════════════════ */
+
+/* ── XP Pill in header area ── */
+.xp-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(124,106,247,0.1);
+  border: 1px solid rgba(124,106,247,0.22);
+  border-radius: 999px;
+  padding: 6px 14px 6px 10px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  user-select: none;
+}
+.xp-pill:hover { background: rgba(124,106,247,0.18); border-color: rgba(124,106,247,0.35); }
+.xp-pill-icon {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+  background: rgba(124,106,247,0.2);
+}
+.xp-pill-info { display: flex; flex-direction: column; line-height: 1.2; }
+.xp-pill-level { font-size: 11px; font-weight: 700; color: var(--accent2); }
+.xp-pill-xp    { font-size: 9px; color: var(--muted2); }
+.xp-pill-bar-wrap {
+  width: 48px; height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px; overflow: hidden;
+}
+.xp-pill-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+/* ── Gamification Panel (modal) ── */
+.gm-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(12px);
+  z-index: 9997;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.gm-overlay.visible { opacity: 1; pointer-events: all; }
+
+.gm-card {
+  background: var(--card);
+  border: 1px solid rgba(124,106,247,0.25);
+  border-radius: 28px;
+  padding: 0;
+  max-width: 620px;
+  width: 94%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 0 80px rgba(124,106,247,0.12), 0 30px 70px rgba(0,0,0,0.6);
+  transform: scale(0.94) translateY(16px);
+  transition: transform 0.35s cubic-bezier(0.34,1.2,0.64,1);
+}
+.gm-overlay.visible .gm-card { transform: scale(1) translateY(0); }
+
+.gm-card-top-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), #b8a8ff, var(--teal));
+  border-radius: 28px 28px 0 0;
+}
+
+.gm-header {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.gm-header-row {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+}
+.gm-title-area {}
+.gm-badge-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--accent2); font-weight: 700;
+  background: rgba(124,106,247,0.1); border: 1px solid rgba(124,106,247,0.2);
+  padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
+}
+.gm-main-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 24px; font-weight: 400; color: var(--text);
+  line-height: 1.2;
+}
+.gm-close-x {
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--muted2); border-radius: 10px;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 13px; flex-shrink: 0;
+  transition: color 0.2s, background 0.2s;
+}
+.gm-close-x:hover { color: var(--text); background: var(--bg3); }
+
+/* Level block */
+.gm-level-block {
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 20px; align-items: center;
+}
+.gm-level-orb {
+  width: 80px; height: 80px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 35% 35%, rgba(124,106,247,0.35), rgba(124,106,247,0.08));
+  border: 2px solid rgba(124,106,247,0.35);
+  box-shadow: 0 0 30px rgba(124,106,247,0.15);
+  position: relative;
+}
+.gm-level-orb-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 32px; line-height: 1; color: var(--accent2); font-weight: 400;
+}
+.gm-level-orb-lbl {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: rgba(166,149,255,0.6); font-weight: 600;
+}
+.gm-level-info { flex: 1; }
+.gm-level-name {
+  font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+}
+.gm-level-sub {
+  font-size: 11px; color: var(--muted2); margin-bottom: 12px;
+}
+.gm-xp-bar-wrap {
+  height: 8px; background: var(--bg3); border-radius: 99px; overflow: hidden;
+  margin-bottom: 6px;
+}
+.gm-xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px;
+  transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.gm-xp-bar-fill::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0; width: 8px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 99px;
+  animation: xpShimmer 1.5s infinite;
+}
+@keyframes xpShimmer {
+  0%,100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+.gm-xp-nums {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--muted);
+}
+.gm-xp-nums strong { color: var(--accent2); }
+
+/* XP Breakdown */
+.gm-section { padding: 20px 28px; border-bottom: 1px solid var(--border); }
+.gm-section-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em;
+  font-weight: 700; color: var(--muted2); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.gm-section-title i { color: var(--accent2); font-size: 11px; }
+
+.gm-xp-sources {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+}
+.gm-xp-source-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 12px; text-align: center;
+}
+.gm-xp-source-icon { font-size: 20px; margin-bottom: 6px; }
+.gm-xp-source-val {
+  font-size: 18px; font-weight: 700;
+  font-family: 'Instrument Serif', serif;
+  color: var(--accent2);
+}
+.gm-xp-source-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+/* Badges earned */
+.gm-badges-grid {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.gm-badge-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 8px 12px;
+  font-size: 11px;
+}
+.gm-badge-item.earned {
+  background: rgba(124,106,247,0.07);
+  border-color: rgba(124,106,247,0.2);
+  color: var(--accent2);
+}
+.gm-badge-item.locked { opacity: 0.35; filter: grayscale(1); }
+.gm-badge-emoji { font-size: 16px; }
+.gm-badge-name { font-weight: 600; font-size: 10px; }
+.gm-badge-desc { font-size: 9px; color: var(--muted); }
+
+/* Weekly Leaderboard */
+.gm-week-tabs {
+  display: flex; gap: 6px; margin-bottom: 16px;
+}
+.gm-week-tab {
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--muted2); border-radius: 8px;
+  padding: 6px 14px; font-size: 11px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: all 0.2s;
+}
+.gm-week-tab.active {
+  background: rgba(124,106,247,0.12);
+  border-color: rgba(124,106,247,0.28);
+  color: var(--accent2);
+}
+
+.gm-leaderboard { display: flex; flex-direction: column; gap: 6px; }
+.gm-lb-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 14px;
+  transition: border-color 0.2s;
+}
+.gm-lb-row.current-week {
+  background: rgba(124,106,247,0.06);
+  border-color: rgba(124,106,247,0.22);
+}
+.gm-lb-rank {
+  font-size: 11px; font-weight: 700;
+  width: 22px; text-align: center; flex-shrink: 0;
+  color: var(--muted);
+}
+.gm-lb-rank.gold   { color: #f5c869; font-size: 14px; }
+.gm-lb-rank.silver { color: #b0b8cc; font-size: 14px; }
+.gm-lb-rank.bronze { color: #d48c5a; font-size: 14px; }
+.gm-lb-week-label {
+  flex: 1; font-size: 12px; color: var(--text); font-weight: 600;
+}
+.gm-lb-week-sub {
+  font-size: 10px; color: var(--muted); font-weight: 400;
+}
+.gm-lb-xp {
+  font-size: 13px; font-weight: 700;
+  color: var(--accent2);
+  background: rgba(124,106,247,0.1);
+  border: 1px solid rgba(124,106,247,0.18);
+  padding: 3px 10px; border-radius: 7px;
+  flex-shrink: 0;
+}
+.gm-lb-topics {
+  font-size: 10px; color: var(--muted); flex-shrink: 0;
+}
+
+/* Next level milestones */
+.gm-milestones-list { display: flex; flex-direction: column; gap: 8px; }
+.gm-milestone-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 14px;
+}
+.gm-milestone-row.done {
+  background: rgba(62,207,170,0.05);
+  border-color: rgba(62,207,170,0.18);
+}
+.gm-ms-emoji { font-size: 18px; flex-shrink: 0; }
+.gm-ms-info { flex: 1; }
+.gm-ms-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.gm-ms-req  { font-size: 10px; color: var(--muted); }
+.gm-ms-status {
+  font-size: 10px; font-weight: 700;
+  padding: 3px 9px; border-radius: 6px;
+  flex-shrink: 0;
+}
+.gm-ms-status.done { background: rgba(62,207,170,0.12); color: var(--teal); border: 1px solid rgba(62,207,170,0.2); }
+.gm-ms-status.locked { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); }
+
+/* XP Toast popup */
+.xp-toast-pop {
+  position: fixed;
+  bottom: 80px; right: 20px;
+  background: linear-gradient(135deg, rgba(124,106,247,0.95), rgba(166,149,255,0.95));
+  color: #fff;
+  border-radius: 16px;
+  padding: 12px 18px;
+  font-size: 13px; font-weight: 700;
+  box-shadow: 0 8px 32px rgba(124,106,247,0.45);
+  z-index: 9999;
+  display: flex; align-items: center; gap: 10px;
+  transform: translateY(20px); opacity: 0;
+  transition: all 0.4s cubic-bezier(0.34,1.2,0.64,1);
+  pointer-events: none;
+}
+.xp-toast-pop.show { transform: translateY(0); opacity: 1; }
+.xp-toast-pop.hide { transform: translateY(-12px); opacity: 0; }
+
+/* Level up modal */
+.lvlup-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(16px);
+  z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s;
+}
+.lvlup-overlay.visible { opacity: 1; pointer-events: all; }
+.lvlup-card {
+  background: var(--card);
+  border: 1px solid rgba(124,106,247,0.4);
+  border-radius: 28px; padding: 48px 36px 36px;
+  text-align: center; max-width: 360px; width: 90%;
+  box-shadow: 0 0 100px rgba(124,106,247,0.25), 0 0 200px rgba(124,106,247,0.1);
+  transform: scale(0.8);
+  transition: transform 0.5s cubic-bezier(0.34,1.4,0.64,1);
+}
+.lvlup-overlay.visible .lvlup-card { transform: scale(1); }
+.lvlup-rays {
+  font-size: 52px; margin-bottom: 8px;
+  animation: lvlupPulse 0.8s ease infinite alternate;
+}
+@keyframes lvlupPulse { from { transform: scale(1); } to { transform: scale(1.08); } }
+.lvlup-subtitle { font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent2); font-weight: 700; margin-bottom: 8px; }
+.lvlup-level-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 64px; line-height: 1;
+  background: linear-gradient(135deg, var(--accent2), #fff, var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+.lvlup-level-name { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.lvlup-desc { font-size: 12px; color: var(--muted2); line-height: 1.6; margin-bottom: 28px; }
+.lvlup-ok-btn {
+  background: linear-gradient(135deg, var(--accent), #9b8eff);
+  color: #fff; border: none; border-radius: 14px;
+  padding: 13px 36px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 6px 24px rgba(124,106,247,0.4);
+  transition: opacity 0.2s, transform 0.1s;
+}
+.lvlup-ok-btn:hover { opacity: 0.9; }
+.lvlup-ok-btn:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
@@ -2760,8 +3541,98 @@ body::before {
     <button class="nav-btn" id="tab-flashcards" onclick="switchTab('flashcards')"><i class="fa-solid fa-layer-group"></i> Flashcards</button>
     <button class="nav-btn" id="tab-progress" onclick="switchTab('progress')"><i class="fa-solid fa-trophy"></i> Progress & Legacy</button>
     <button class="nav-btn" id="tab-pomodoro" onclick="switchTab('pomodoro')"><i class="fa-solid fa-circle-dot"></i> Focus Timer</button>
+    <button class="nav-btn" id="tab-aimonitor" onclick="switchTab('aimonitor')" style="background:linear-gradient(135deg,rgba(224,90,122,0.12),rgba(124,106,247,0.12));border-color:rgba(224,90,122,0.25)"><i class="fa-solid fa-robot" style="color:#f08ca8"></i> <span style="background:linear-gradient(90deg,#f08ca8,#a695ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">AI Monitor</span></button>
+  </div>
+  <!-- XP Pill -->
+  <div style="display:flex;justify-content:center;margin-top:14px">
+    <div class="xp-pill" onclick="gmOpen()" id="xp-pill-el" title="Gamification Panel দেখো">
+      <div class="xp-pill-icon" id="xp-pill-icon">⚔️</div>
+      <div class="xp-pill-info">
+        <div class="xp-pill-level" id="xp-pill-level">Level 1</div>
+        <div class="xp-pill-xp" id="xp-pill-xp">0 XP</div>
+      </div>
+      <div class="xp-pill-bar-wrap">
+        <div class="xp-pill-bar" id="xp-pill-bar" style="width:0%"></div>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- ── GAMIFICATION MODAL ── -->
+<div class="gm-overlay" id="gm-overlay">
+  <div class="gm-card">
+    <div class="gm-card-top-bar"></div>
+    <div class="gm-header">
+      <div class="gm-header-row">
+        <div class="gm-title-area">
+          <div class="gm-badge-label"><i class="fa-solid fa-shield-halved"></i> Gamification</div>
+          <div class="gm-main-title">তোমার Progress Arena</div>
+        </div>
+        <button class="gm-close-x" onclick="gmClose()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="gm-level-block">
+      <div class="gm-level-orb">
+        <div class="gm-level-orb-num" id="gm-lvl-num">1</div>
+        <div class="gm-level-orb-lbl">Level</div>
+      </div>
+      <div class="gm-level-info">
+        <div class="gm-level-name" id="gm-lvl-name">Novice Scholar</div>
+        <div class="gm-level-sub" id="gm-lvl-sub">যাত্রা শুরু হয়েছে!</div>
+        <div class="gm-xp-bar-wrap"><div class="gm-xp-bar-fill" id="gm-xp-bar" style="width:0%"></div></div>
+        <div class="gm-xp-nums">
+          <span><strong id="gm-xp-cur">0</strong> XP</span>
+          <span id="gm-xp-next">পরবর্তী level: 100 XP</span>
+        </div>
+      </div>
+    </div>
+    <div class="gm-section">
+      <div class="gm-section-title"><i class="fa-solid fa-bolt"></i> XP Breakdown</div>
+      <div class="gm-xp-sources">
+        <div class="gm-xp-source-card"><div class="gm-xp-source-icon">✅</div><div class="gm-xp-source-val" id="gm-xp-topics">0</div><div class="gm-xp-source-lbl">Topics XP</div></div>
+        <div class="gm-xp-source-card"><div class="gm-xp-source-icon">🔄</div><div class="gm-xp-source-val" id="gm-xp-revs">0</div><div class="gm-xp-source-lbl">Revision XP</div></div>
+        <div class="gm-xp-source-card"><div class="gm-xp-source-icon">🔥</div><div class="gm-xp-source-val" id="gm-xp-streak">0</div><div class="gm-xp-source-lbl">Streak XP</div></div>
+        <div class="gm-xp-source-card"><div class="gm-xp-source-icon">🃏</div><div class="gm-xp-source-val" id="gm-xp-flash">0</div><div class="gm-xp-source-lbl">Flashcard XP</div></div>
+        <div class="gm-xp-source-card"><div class="gm-xp-source-icon">🎯</div><div class="gm-xp-source-val" id="gm-xp-pomo">0</div><div class="gm-xp-source-lbl">Pomodoro XP</div></div>
+        <div class="gm-xp-source-card" style="background:rgba(212,168,67,0.05);border-color:rgba(212,168,67,0.15)">
+          <div class="gm-xp-source-icon">⭐</div><div class="gm-xp-source-val" id="gm-xp-total" style="color:var(--gold2)">0</div><div class="gm-xp-source-lbl" style="color:var(--gold)">Total XP</div>
+        </div>
+      </div>
+    </div>
+    <div class="gm-section">
+      <div class="gm-section-title"><i class="fa-solid fa-ranking-star"></i> Weekly Leaderboard — নিজের সাথে তুলনা</div>
+      <div class="gm-week-tabs">
+        <button class="gm-week-tab active" id="gm-wt-xp"     onclick="gmWeekTab('xp')"><i class="fa-solid fa-bolt"></i> XP</button>
+        <button class="gm-week-tab"        id="gm-wt-topics"  onclick="gmWeekTab('topics')"><i class="fa-solid fa-check"></i> Topics</button>
+        <button class="gm-week-tab"        id="gm-wt-revs"    onclick="gmWeekTab('revs')"><i class="fa-solid fa-repeat"></i> Revisions</button>
+      </div>
+      <div class="gm-leaderboard" id="gm-leaderboard"></div>
+    </div>
+    <div class="gm-section">
+      <div class="gm-section-title"><i class="fa-solid fa-medal"></i> Achievement Badges</div>
+      <div class="gm-badges-grid" id="gm-badges-grid"></div>
+    </div>
+    <div class="gm-section" style="border-bottom:none">
+      <div class="gm-section-title"><i class="fa-solid fa-map-pin"></i> পরবর্তী Milestones</div>
+      <div class="gm-milestones-list" id="gm-milestones-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── LEVEL UP MODAL ── -->
+<div class="lvlup-overlay" id="lvlup-overlay">
+  <div class="lvlup-card">
+    <div class="lvlup-rays" id="lvlup-emoji">🏆</div>
+    <div class="lvlup-subtitle">Level Up!</div>
+    <div class="lvlup-level-num" id="lvlup-num">2</div>
+    <div class="lvlup-level-name" id="lvlup-name">Rising Scholar</div>
+    <div class="lvlup-desc" id="lvlup-desc">তুমি নতুন level এ পৌঁছে গেছ!</div>
+    <button class="lvlup-ok-btn" onclick="lvlupClose()"><i class="fa-solid fa-bolt"></i> চলো এগিয়ে যাই!</button>
+  </div>
+</div>
+
+<!-- XP Toast -->
+<div class="xp-toast-pop" id="xp-toast-pop"></div>
 
 <!-- Streak toast -->
 <div id="streak-toast"></div>
@@ -3207,7 +4078,235 @@ body::before {
     </div>
   </div>
 
+
+  <!-- ══ TAB: AI MONITOR ══ -->
+  <div id="view-aimonitor" class="tab-view">
+    <div class="aim-section-hdr">
+      <h2>🤖 AI <em style="font-style:italic;background:linear-gradient(135deg,#f08ca8,#a695ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Activity Monitor</em></h2>
+      <p>AI তোমাকে real-time monitor করবে, force করবে, আর consistent রাখবে।</p>
+    </div>
+
+    <div class="aim-grid">
+      <!-- Live Status -->
+      <div class="aim-card">
+        <div class="aim-card-title"><i class="fa-solid fa-satellite-dish"></i> Live Activity Status</div>
+        <div class="aim-status-row" id="aim-status-row">
+          <div class="aim-status-dot active" id="aim-dot"></div>
+          <div>
+            <div class="aim-status-text" id="aim-status-text">Monitoring Active</div>
+            <div class="aim-status-sub" id="aim-status-sub">AI তোমার progress দেখছে…</div>
+          </div>
+        </div>
+        <div class="aim-card-title" style="margin-top:4px"><i class="fa-solid fa-robot"></i> AI Coach</div>
+        <div class="aim-chat-box" id="aim-chat-box">
+          <div class="aim-msg">
+            <div class="aim-msg-avatar ai"><i class="fa-solid fa-robot"></i></div>
+            <div>
+              <div class="aim-msg-bubble ai-bubble">হ্যালো! আমি তোমার AI Coach। আজকের activity দেখে তোমাকে guide করবো। Tab খোলার পরে আমি analyze করছি…</div>
+              <div class="aim-msg-time" id="aim-init-time"></div>
+            </div>
+          </div>
+        </div>
+        <button class="aim-ask-btn" onclick="aimAskAI()"><i class="fa-solid fa-sparkles"></i> AI-কে জিজ্ঞেস করো / গাইড নাও</button>
+        <button class="aim-force-btn" onclick="aimForceMode()" style="margin-top:10px"><i class="fa-solid fa-bolt"></i> FORCE MODE — এখনই কাজ শুরু করো!</button>
+      </div>
+
+      <!-- Today's Score -->
+      <div class="aim-card">
+        <div class="aim-card-title"><i class="fa-solid fa-star"></i> আজকের Score</div>
+        <div class="aim-score-big">
+          <div class="aim-score-num" id="aim-today-score">—</div>
+          <div class="aim-score-grade" id="aim-today-grade">Loading…</div>
+          <div class="aim-score-sub" id="aim-today-sub"></div>
+        </div>
+        <div class="aim-report-bars">
+          <div class="aim-bar-row">
+            <div class="aim-bar-label">Topics</div>
+            <div class="aim-bar-track"><div class="aim-bar-fill" id="aim-bar-topics" style="width:0%;background:linear-gradient(90deg,var(--teal),var(--accent2))"></div></div>
+            <div class="aim-bar-val" id="aim-val-topics">0</div>
+          </div>
+          <div class="aim-bar-row">
+            <div class="aim-bar-label">Revisions</div>
+            <div class="aim-bar-track"><div class="aim-bar-fill" id="aim-bar-revs" style="width:0%;background:linear-gradient(90deg,var(--accent2),var(--sky))"></div></div>
+            <div class="aim-bar-val" id="aim-val-revs">0</div>
+          </div>
+          <div class="aim-bar-row">
+            <div class="aim-bar-label">Focus (min)</div>
+            <div class="aim-bar-track"><div class="aim-bar-fill" id="aim-bar-focus" style="width:0%;background:linear-gradient(90deg,var(--gold),var(--rose))"></div></div>
+            <div class="aim-bar-val" id="aim-val-focus">0</div>
+          </div>
+          <div class="aim-bar-row">
+            <div class="aim-bar-label">Flashcards</div>
+            <div class="aim-bar-track"><div class="aim-bar-fill" id="aim-bar-flash" style="width:0%;background:linear-gradient(90deg,var(--sky),var(--teal))"></div></div>
+            <div class="aim-bar-val" id="aim-val-flash">0</div>
+          </div>
+        </div>
+        <div class="aim-streak-row">
+          <div class="aim-streak-num" id="aim-streak-num">0</div>
+          <div class="aim-streak-info">
+            <div class="aim-streak-label">🔥 দিনের Streak</div>
+            <div class="aim-streak-sub" id="aim-streak-sub">এখনো কোনো activity নেই আজ।</div>
+          </div>
+        </div>
+        <div class="aim-week-dots" id="aim-week-dots"></div>
+      </div>
+
+      <!-- Report Section - full width -->
+      <div class="aim-card aim-full">
+        <div class="aim-card-title"><i class="fa-solid fa-chart-line"></i> Report & Lifetime Compare</div>
+        <div class="aim-report-tabs">
+          <button class="aim-report-tab active" id="aim-rt-daily"   onclick="aimTab('daily')"><i class="fa-solid fa-sun"></i> Daily</button>
+          <button class="aim-report-tab"        id="aim-rt-weekly"  onclick="aimTab('weekly')"><i class="fa-solid fa-calendar-week"></i> Weekly</button>
+          <button class="aim-report-tab"        id="aim-rt-monthly" onclick="aimTab('monthly')"><i class="fa-solid fa-calendar"></i> Monthly</button>
+          <button class="aim-report-tab"        id="aim-rt-lifetime" onclick="aimTab('lifetime')"><i class="fa-solid fa-infinity"></i> Lifetime</button>
+          <button class="aim-report-tab"        id="aim-rt-aireport" onclick="aimTab('aireport')" style="margin-left:auto;background:rgba(124,106,247,.1);border-color:rgba(124,106,247,.2);color:var(--accent2)"><i class="fa-solid fa-robot"></i> AI Report</button>
+        </div>
+
+        <!-- Daily panel -->
+        <div id="aim-panel-daily">
+          <div class="aim-history-list" id="aim-daily-list"></div>
+        </div>
+
+        <!-- Weekly panel -->
+        <div id="aim-panel-weekly" style="display:none">
+          <div class="aim-history-list" id="aim-weekly-list"></div>
+        </div>
+
+        <!-- Monthly panel -->
+        <div id="aim-panel-monthly" style="display:none">
+          <div class="aim-compare-grid" id="aim-monthly-grid"></div>
+        </div>
+
+        <!-- Lifetime panel -->
+        <div id="aim-panel-lifetime" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:16px" id="aim-lifetime-grid"></div>
+          <div style="font-size:11px;color:var(--muted);text-align:center;padding:8px 0" id="aim-lifetime-total"></div>
+        </div>
+
+        <!-- AI Report panel -->
+        <div id="aim-panel-aireport" style="display:none">
+          <div class="aim-ai-report" id="aim-ai-report-box">
+            <div class="aim-ai-report-header"><i class="fa-solid fa-robot"></i> AI Weekly Report</div>
+            <div class="aim-ai-report-body" id="aim-ai-report-body">
+              <div class="aim-ai-report-loading"><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div> <span>Report generate করছি…</span></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="aim-ask-btn" style="flex:1" onclick="aimGenerateAIReport('weekly')"><i class="fa-solid fa-calendar-week"></i> Weekly Report</button>
+            <button class="aim-ask-btn" style="flex:1" onclick="aimGenerateAIReport('monthly')"><i class="fa-solid fa-calendar"></i> Monthly Report</button>
+            <button class="aim-ask-btn" style="flex:1" onclick="aimGenerateAIReport('lifetime')"><i class="fa-solid fa-infinity"></i> Lifetime Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /container -->
+
+<!-- ═══ EXAM MODAL ═══ -->
+<div class="exam-overlay" id="exam-overlay">
+  <div class="exam-card">
+    <div class="exam-topbar"></div>
+    <div class="exam-header">
+      <div class="exam-badge"><i class="fa-solid fa-graduation-cap"></i> Topic Exam</div>
+      <div class="exam-topic-title" id="exam-topic-title">Topic Name</div>
+      <div class="exam-topic-meta" id="exam-topic-meta">Subject · Category</div>
+    </div>
+
+    <!-- STEP 1: Choose Mode -->
+    <div class="exam-choose-step" id="exam-step-choose">
+      <div class="exam-choose-title">🎓 Complete করার আগে Exam দেবে?</div>
+      <div class="exam-choose-sub">Exam দিলে তোমার mark সারাজীবন সেভ থাকবে। দিতে না চাইলে skip করে সরাসরি complete করতে পারো।</div>
+      <div class="exam-choose-btns">
+        <button class="exam-opt-btn" onclick="examGoConfig('auto')">
+          <div class="exam-opt-icon" style="background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.22)">🤖</div>
+          <div>
+            <div class="exam-opt-title">AI Auto MCQ</div>
+            <div class="exam-opt-desc">AI এই topic-এর উপর MCQ তৈরি করবে — শুধু বলো কতটা চাও</div>
+          </div>
+        </button>
+        <button class="exam-opt-btn" onclick="examGoConfig('custom')">
+          <div class="exam-opt-icon" style="background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.22)">✍️</div>
+          <div>
+            <div class="exam-opt-title">নিজে Question লিখবো</div>
+            <div class="exam-opt-desc">নিজে question ও answer দাও, তারপর exam হবে</div>
+          </div>
+        </button>
+      </div>
+      <button class="exam-skip-btn" onclick="examSkipToComplete()"><i class="fa-solid fa-forward"></i> Exam ছাড়াই Complete করো</button>
+    </div>
+
+    <!-- STEP 2: Config -->
+    <div class="exam-config-step" id="exam-step-config" style="display:none">
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px" id="exam-config-title">MCQ Settings</div>
+        <div style="font-size:11px;color:var(--muted)" id="exam-config-sub">কতটা প্রশ্ন চাও?</div>
+      </div>
+      <div class="exam-config-row">
+        <div>
+          <div class="exam-config-label">প্রশ্ন সংখ্যা</div>
+          <div class="exam-config-sub">প্রতি সঠিক উত্তরে XP পাবে</div>
+        </div>
+        <div class="exam-num-ctrl">
+          <button class="exam-num-btn" onclick="examAdjQ(-1)">−</button>
+          <div class="exam-num-val" id="exam-q-count">5</div>
+          <button class="exam-num-btn" onclick="examAdjQ(+1)">+</button>
+        </div>
+      </div>
+
+      <!-- Custom questions area (hidden for auto) -->
+      <div id="exam-custom-area" style="display:none">
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;font-weight:600">নিজের প্রশ্ন যোগ করো:</div>
+        <div id="exam-custom-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+        <input class="exam-custom-input" id="exam-cq-q" placeholder="প্রশ্ন লেখো…">
+        <input class="exam-custom-input" id="exam-cq-a" placeholder="সঠিক উত্তর লেখো…" style="margin-top:6px">
+        <input class="exam-custom-input" id="exam-cq-w1" placeholder="ভুল উত্তর ১…" style="margin-top:6px">
+        <input class="exam-custom-input" id="exam-cq-w2" placeholder="ভুল উত্তর ২…" style="margin-top:6px">
+        <input class="exam-custom-input" id="exam-cq-w3" placeholder="ভুল উত্তর ৩…" style="margin-top:6px">
+        <button class="exam-opt-btn" style="margin-top:8px;padding:10px 14px" onclick="examAddCustomQ()">
+          <div class="exam-opt-icon" style="background:rgba(62,207,170,.1);border:1px solid rgba(62,207,170,.2);width:28px;height:28px;border-radius:8px;font-size:13px">+</div>
+          <div class="exam-opt-title" style="font-size:12px">প্রশ্ন যোগ করো</div>
+        </button>
+      </div>
+
+      <button class="exam-start-btn" onclick="examStart()" id="exam-start-btn">
+        <i class="fa-solid fa-rocket"></i> Exam শুরু করো!
+      </button>
+      <button class="exam-skip-btn" onclick="examBackToChoose()">← পেছনে যাও</button>
+    </div>
+
+    <!-- STEP 3: Running exam -->
+    <div class="exam-run-step" id="exam-step-run" style="display:none">
+      <div class="exam-progress-bar"><div class="exam-progress-fill" id="exam-prog-fill" style="width:0%"></div></div>
+      <div class="exam-q-counter" id="exam-q-counter">প্রশ্ন 1 / 5</div>
+      <div class="exam-question" id="exam-question">
+        <div class="exam-loading-q">
+          <div class="ai-mot-dot"></div><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div>
+          <span>প্রশ্ন তৈরি হচ্ছে…</span>
+        </div>
+      </div>
+      <div class="exam-options" id="exam-options"></div>
+      <div class="exam-explain" id="exam-explain"></div>
+      <button class="exam-next-btn" id="exam-next-btn" onclick="examNext()">পরবর্তী প্রশ্ন →</button>
+    </div>
+
+    <!-- STEP 4: Result -->
+    <div class="exam-result-step" id="exam-step-result" style="display:none">
+      <div class="exam-result-emoji" id="exam-res-emoji">🎓</div>
+      <div class="exam-result-score" id="exam-res-score">0/0</div>
+      <div class="exam-result-grade" id="exam-res-grade">—</div>
+      <div class="exam-result-sub"  id="exam-res-sub">—</div>
+      <div class="exam-result-xp"   id="exam-res-xp"><i class="fa-solid fa-bolt"></i> +0 XP</div>
+      <div class="exam-result-breakdown">
+        <div class="exam-rb-card"><div class="exam-rb-num" id="exr-correct" style="color:var(--teal)">0</div><div class="exam-rb-lbl">সঠিক</div></div>
+        <div class="exam-rb-card"><div class="exam-rb-num" id="exr-wrong"   style="color:var(--rose)">0</div><div class="exam-rb-lbl">ভুল</div></div>
+        <div class="exam-rb-card"><div class="exam-rb-num" id="exr-pct"     style="color:var(--gold2)">0%</div><div class="exam-rb-lbl">Score</div></div>
+      </div>
+      <button class="exam-result-proceed" onclick="examProceedComplete()">✅ Complete করো ও সংরক্ষণ করো</button>
+      <button class="exam-result-retry"   onclick="examRetry()"><i class="fa-solid fa-rotate-right"></i> আবার Exam দাও</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ PLAN MAP MODAL ═══ -->
 <div class="plan-map-overlay" id="plan-map-overlay">
@@ -3452,12 +4551,13 @@ window.onload=async function(){
   } catch(e){ dbRoutine=defaultRoutine; dbTopics={}; }
   // Load KV data from server
   try{
-    const [pd, pt, sk, fc, pm] = await Promise.all([
+    const [pd, pt, sk, fc, pm, gm] = await Promise.all([
       kvGet(POMO_PM_KEY),
       kvGet(POMO_TOPICS_KEY),
       kvGet(SK_KEY),
       kvGet(FC_KEY),
-      kvGet(PM_STORAGE_KEY)
+      kvGet(PM_STORAGE_KEY),
+      kvGet(GM_KEY)
     ]);
     if(pd){
       if(pd.date !== getLocalDateStr())
@@ -3468,13 +4568,14 @@ window.onload=async function(){
     if(sk) skData = sk;
     if(fc){ fcCardsCache = fc; fcCards = fc; }
     if(pm) pmCache = pm;
+    if(gm) gmData = gm;
     pomoTimeLeft  = pomoData.focusMinutes * 60;
     pomoTotalSecs = pomoData.focusMinutes * 60;
     pomoSyncTopics();
     pomoUpdateDisplay();
   }catch(e){ console.warn('KV load error:', e); }
   hideSync();
-  renderRoutine(); setupInjector(); renderDaily(); skRender(); fcUpdateNavBadge();
+  renderRoutine(); setupInjector(); renderDaily(); skRender(); fcUpdateNavBadge(); gmUpdatePill();
 };
 
 // ── TABS ──
@@ -3711,13 +4812,13 @@ function renderRadar(){
 }
 async function toggleMilestone(id,day,mark){
   let u=null;
-  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){if(!t.reviewsDone)t.reviewsDone=[];if(!t.reviewHistoryStamps)t.reviewHistoryStamps={};if(mark){if(!t.reviewsDone.includes(day)){t.reviewsDone.push(day);t.reviewHistoryStamps[day]=activeDate;}triggerSurprise();}else{t.reviewsDone=t.reviewsDone.filter(m=>m!==day);delete t.reviewHistoryStamps[day];}u={...t};}}) );
+  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){if(!t.reviewsDone)t.reviewsDone=[];if(!t.reviewHistoryStamps)t.reviewHistoryStamps={};if(mark){if(!t.reviewsDone.includes(day)){t.reviewsDone.push(day);t.reviewHistoryStamps[day]=activeDate;}triggerSurprise();gmOnRevision(false);}else{t.reviewsDone=t.reviewsDone.filter(m=>m!==day);delete t.reviewHistoryStamps[day];}u={...t};}}) );
   renderDaily();
   if(u){try{showSync('Saving…');dbTopics=await apiPut(`/topics/${id}`,u);}catch(e){showApiError('Save হয়নি — আবার try করুন।');}finally{hideSync();}}
 }
 async function approveCustomRev(id){
   let u=null;
-  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){if(!t.customReviewHistoryDates)t.customReviewHistoryDates=[];t.customReviewHistoryDates.push(activeDate);t.customRevPendingOn=null;u={...t};triggerSurprise();}}) );
+  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){if(!t.customReviewHistoryDates)t.customReviewHistoryDates=[];t.customReviewHistoryDates.push(activeDate);t.customRevPendingOn=null;u={...t};triggerSurprise();gmOnRevision(true);}}) );
   renderDaily();
   if(u){try{showSync('Saving…');dbTopics=await apiPut(`/topics/${id}`,u);}catch(e){showApiError('Save হয়নি — আবার try করুন।');}finally{hideSync();}}
 }
@@ -4401,6 +5502,7 @@ function pomoOnPhaseEnd(completed){
     pomoSessionNum++;
     pomoShowToast('🎯','Focus Complete!',`${pomoData.focusMinutes} min session saved. Now rest.`,'#5b8af5');
     pomoRingBell();
+    gmOnPomo();
     // 🤖 Show AI Motivator
     aiMotivatorShow(pomoCurTopic, pomoData.focusMinutes, pomoSessionNum);
   } else if(pomoIsRest && completed){
@@ -5010,6 +6112,7 @@ function fcRate(rating){
   const idx = fcCards.findIndex(c=>c.id===card.id);
   if(idx !== -1) fcCards[idx] = updated;
   fcSave(fcCards);
+  gmOnFlashcard();
   // Move to next
   fcSessionIdx++;
   if(fcSessionIdx >= fcSessionCards.length){
@@ -5145,7 +6248,7 @@ async function doComplete(id, url, pendingFcCards){
   let updated = null;
   const recs = dbTopics[activeDate]||[];
   Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
-    if(t.id===id){ t.status='Complete'; t.completionDate=activeDate; t.noteUrl=url||null; updated={...t}; triggerSurprise(); skOnComplete(activeDate); }
+    if(t.id===id){ t.status='Complete'; t.completionDate=activeDate; t.noteUrl=url||null; updated={...t}; triggerSurprise(); skOnComplete(activeDate); gmOnTopicComplete(); }
   }));
   closeModal('m-complete');
   fcModalTempCards = [];
@@ -5482,7 +6585,1165 @@ document.addEventListener('click', function(e){
   if(e.target === overlay) pmClose();
 });
 
-let aiMotCurrentTopic = '';
+// ══════════════════════════════════════════════════
+//  GAMIFICATION ENGINE — XP / LEVEL / LEADERBOARD
+// ══════════════════════════════════════════════════
+
+const GM_KEY = 'gm_v1';
+let gmData = null; // loaded from server on init
+let _gmWeekMode = 'xp';
+let _gmLeveledUpThisSession = []; // levels already shown this session
+
+// ── XP per action ──
+const GM_XP = {
+  topicComplete:  10,  // প্রতি topic complete
+  revisionDone:    7,  // auto milestone review (day 1/3/7/30)
+  customRevision:  8,  // custom revision
+  flashcardReview: 2,  // প্রতি flashcard rate
+  pomoSession:     5,  // প্রতি pomodoro session complete
+  streakBonus:     3,  // প্রতি streak day bonus (streak * 3 XP)
+};
+
+// ── Level definitions ──
+const GM_LEVELS = [
+  { level:1,  xp:0,    name:'Novice Scholar',   emoji:'⚔️',  desc:'যাত্রা শুরু হয়েছে। প্রথম topic complete করো!' },
+  { level:2,  xp:50,   name:'Rising Scholar',   emoji:'📖',  desc:'পড়াশোনায় মনোযোগ দিতে শিখছ।' },
+  { level:3,  xp:150,  name:'Keen Learner',     emoji:'🔍',  desc:'জানার আগ্রহ বাড়ছে।' },
+  { level:4,  xp:300,  name:'Diligent Student', emoji:'✏️',  desc:'নিয়মিত পড়ার অভ্যাস তৈরি হচ্ছে।' },
+  { level:5,  xp:500,  name:'Focused Achiever', emoji:'🎯',  desc:'লক্ষ্য স্থির, মনোযোগ একাগ্র।' },
+  { level:6,  xp:750,  name:'Consistent Grinder',emoji:'⚙️', desc:'ধারাবাহিকতা তোমার সবচেয়ে বড় শক্তি।' },
+  { level:7,  xp:1100, name:'Knowledge Seeker', emoji:'🔭',  desc:'জ্ঞানের অন্বেষণে নিরলস।' },
+  { level:8,  xp:1500, name:'Sharp Mind',       emoji:'⚡',  desc:'দ্রুত শেখো, গভীরে যাও।' },
+  { level:9,  xp:2000, name:'Elite Studier',    emoji:'💎',  desc:'শীর্ষ স্তরে পৌঁছানোর পথে।' },
+  { level:10, xp:2700, name:'Master Scholar',   emoji:'👑',  desc:'জ্ঞান ও অধ্যবসায়ের মুকুট তোমার।' },
+  { level:11, xp:3500, name:'Grandmaster',      emoji:'🏆',  desc:'অপ্রতিরোধ্য। তোমাকে থামানো যাচ্ছে না!' },
+  { level:12, xp:4500, name:'Legend',           emoji:'🚀',  desc:'কিংবদন্তির পথে হাঁটছ।' },
+  { level:13, xp:6000, name:'Immortal Sage',    emoji:'🌟',  desc:'তুমি অমরত্বের ছোঁয়া পেয়েছ।' },
+];
+
+// ── Achievement badges ──
+const GM_BADGES = [
+  { id:'first_topic',   emoji:'🌱', name:'First Step',      desc:'প্রথম topic complete',          check: d => d.topicsXP >= 10 },
+  { id:'ten_topics',    emoji:'📚', name:'Ten Down',        desc:'10টি topic complete',            check: d => d.topicsXP >= 100 },
+  { id:'fifty_topics',  emoji:'🎓', name:'Half Century',    desc:'50টি topic complete',            check: d => d.topicsXP >= 500 },
+  { id:'first_rev',     emoji:'🔄', name:'First Revision',  desc:'প্রথম revision complete',       check: d => d.revisionsXP >= 7 },
+  { id:'rev_master',    emoji:'♻️', name:'Revision Master', desc:'20টি revision done',            check: d => d.revisionsXP >= 140 },
+  { id:'streak7',       emoji:'🔥', name:'Week Warrior',    desc:'7 day streak',                   check: d => d.streakXP >= 63 },
+  { id:'streak30',      emoji:'💪', name:'Iron Will',       desc:'30 day streak',                  check: d => d.streakXP >= 270 },
+  { id:'pomo10',        emoji:'⏱️', name:'Time Keeper',     desc:'10টি pomodoro session',         check: d => d.pomoXP >= 50 },
+  { id:'flash_start',   emoji:'🃏', name:'Card Shark',      desc:'10টি flashcard review',          check: d => d.flashXP >= 20 },
+  { id:'flash_100',     emoji:'🧠', name:'Memory Palace',   desc:'100টি flashcard review',         check: d => d.flashXP >= 200 },
+  { id:'level5',        emoji:'⭐', name:'Level 5 Club',    desc:'Level 5 পৌঁছাও',               check: d => gmCalcLevel(gmTotalXP(d)).level >= 5 },
+  { id:'level10',       emoji:'💫', name:'Top Scholar',     desc:'Level 10 পৌঁছাও',              check: d => gmCalcLevel(gmTotalXP(d)).level >= 10 },
+];
+
+function gmGet(){
+  return gmData || { topicsXP:0, revisionsXP:0, streakXP:0, flashXP:0, pomoXP:0, earnedBadges:[], weeklyLog:{} };
+}
+function gmSave(d){ gmData = d; kvPut(GM_KEY, d); }
+
+function gmTotalXP(d){
+  return (d.topicsXP||0) + (d.revisionsXP||0) + (d.streakXP||0) + (d.flashXP||0) + (d.pomoXP||0);
+}
+
+function gmCalcLevel(totalXP){
+  let lvl = GM_LEVELS[0];
+  for(const l of GM_LEVELS){
+    if(totalXP >= l.xp) lvl = l;
+    else break;
+  }
+  const idx = GM_LEVELS.indexOf(lvl);
+  const nextLvl = GM_LEVELS[idx+1] || null;
+  const xpIntoLevel = totalXP - lvl.xp;
+  const xpNeeded = nextLvl ? (nextLvl.xp - lvl.xp) : 1;
+  const pct = nextLvl ? Math.min(100, Math.round(xpIntoLevel / xpNeeded * 100)) : 100;
+  return { ...lvl, nextLvl, xpIntoLevel, xpNeeded, pct };
+}
+
+// ── Earn XP ──
+function gmEarnXP(type, amount, label){
+  const d = gmGet();
+  const before = gmTotalXP(d);
+  const beforeLevel = gmCalcLevel(before).level;
+
+  if(type === 'topic')   d.topicsXP    = (d.topicsXP||0)    + amount;
+  if(type === 'rev')     d.revisionsXP = (d.revisionsXP||0) + amount;
+  if(type === 'streak')  d.streakXP    = (d.streakXP||0)    + amount;
+  if(type === 'flash')   d.flashXP     = (d.flashXP||0)     + amount;
+  if(type === 'pomo')    d.pomoXP      = (d.pomoXP||0)       + amount;
+
+  // weekly log: track by ISO week key
+  const wk = gmWeekKey(new Date());
+  if(!d.weeklyLog) d.weeklyLog = {};
+  if(!d.weeklyLog[wk]) d.weeklyLog[wk] = { xp:0, topics:0, revs:0, pomoSessions:0 };
+  d.weeklyLog[wk].xp += amount;
+  if(type==='topic')  d.weeklyLog[wk].topics++;
+  if(type==='rev')    d.weeklyLog[wk].revs++;
+  if(type==='pomo')   d.weeklyLog[wk].pomoSessions++;
+
+  gmSave(d);
+  gmShowXPToast('+' + amount + ' XP', label || '');
+  gmUpdatePill();
+
+  // Check level up
+  const after = gmTotalXP(d);
+  const afterLevel = gmCalcLevel(after).level;
+  if(afterLevel > beforeLevel && !_gmLeveledUpThisSession.includes(afterLevel)){
+    _gmLeveledUpThisSession.push(afterLevel);
+    const newL = gmCalcLevel(after);
+    setTimeout(() => gmShowLevelUp(newL), 800);
+  }
+}
+
+// ── Weekly key (ISO week: YYYY-Www) ──
+function gmWeekKey(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const wk = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+  return d.getUTCFullYear() + '-W' + String(wk).padStart(2,'0');
+}
+
+function gmWeekLabel(key){
+  // key = "2025-W21" → "Week 21, 2025" with date range
+  const [yr, wStr] = key.split('-W');
+  const wNum = parseInt(wStr);
+  // Get Monday of that week
+  const jan4 = new Date(parseInt(yr), 0, 4);
+  const monday = new Date(jan4.getTime() + (wNum-1)*7*864e5);
+  monday.setDate(monday.getDate() - (monday.getDay()||7) + 1);
+  const sunday = new Date(monday.getTime() + 6*864e5);
+  const fmt = d => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const isThisWeek = key === gmWeekKey(new Date());
+  return { label: isThisWeek ? 'এই সপ্তাহ (Current)' : `${fmt(monday)} – ${fmt(sunday)}`, isCurrent: isThisWeek };
+}
+
+// ── XP Toast ──
+let _xpToastTimer = null;
+function gmShowXPToast(main, sub){
+  const el = document.getElementById('xp-toast-pop');
+  if(!el) return;
+  el.innerHTML = `<i class="fa-solid fa-bolt" style="font-size:16px"></i><div><div>${main}</div>${sub?`<div style="font-size:10px;opacity:.8">${sub}</div>`:''}</div>`;
+  el.classList.remove('hide');
+  el.classList.add('show');
+  clearTimeout(_xpToastTimer);
+  _xpToastTimer = setTimeout(()=>{
+    el.classList.remove('show');
+    el.classList.add('hide');
+    setTimeout(()=>el.classList.remove('hide'), 400);
+  }, 2000);
+}
+
+// ── Level Up Modal ──
+function gmShowLevelUp(lvlObj){
+  document.getElementById('lvlup-emoji').innerText = lvlObj.emoji;
+  document.getElementById('lvlup-num').innerText   = lvlObj.level;
+  document.getElementById('lvlup-name').innerText  = lvlObj.name;
+  document.getElementById('lvlup-desc').innerText  = lvlObj.desc;
+  document.getElementById('lvlup-overlay').classList.add('visible');
+  confetti({ particleCount:120, spread:100, origin:{y:0.55}, colors:['#a695ff','#3ecfaa','#f5c869','#fff'] });
+  setTimeout(()=>confetti({ particleCount:60, spread:130, origin:{y:0.4}, colors:['#a695ff','#f5c869'] }), 400);
+}
+function lvlupClose(){
+  document.getElementById('lvlup-overlay').classList.remove('visible');
+}
+
+// ── Update pill in nav ──
+function gmUpdatePill(){
+  const d   = gmGet();
+  const tot = gmTotalXP(d);
+  const lvl = gmCalcLevel(tot);
+  const el  = document.getElementById('xp-pill-el');
+  if(!el) return;
+  document.getElementById('xp-pill-icon').innerText  = lvl.emoji;
+  document.getElementById('xp-pill-level').innerText = 'Level ' + lvl.level;
+  document.getElementById('xp-pill-xp').innerText    = tot + ' XP';
+  document.getElementById('xp-pill-bar').style.width = lvl.pct + '%';
+}
+
+// ── Open / Close panel ──
+function gmOpen(){
+  gmRenderPanel();
+  document.getElementById('gm-overlay').classList.add('visible');
+}
+function gmClose(){
+  document.getElementById('gm-overlay').classList.remove('visible');
+}
+document.addEventListener('click', e => {
+  const ov = document.getElementById('gm-overlay');
+  if(e.target === ov) gmClose();
+});
+
+// ── Render panel ──
+function gmRenderPanel(){
+  const d   = gmGet();
+  const tot = gmTotalXP(d);
+  const lvl = gmCalcLevel(tot);
+
+  // Level block
+  document.getElementById('gm-lvl-num').innerText  = lvl.level;
+  document.getElementById('gm-lvl-name').innerText = lvl.emoji + ' ' + lvl.name;
+  document.getElementById('gm-lvl-sub').innerText  = lvl.desc;
+  document.getElementById('gm-xp-bar').style.width = lvl.pct + '%';
+  document.getElementById('gm-xp-cur').innerText   = tot;
+  document.getElementById('gm-xp-next').innerText  = lvl.nextLvl
+    ? `পরবর্তী level: ${lvl.nextLvl.xp} XP (${lvl.xpNeeded - lvl.xpIntoLevel} বাকি)`
+    : '🏆 সর্বোচ্চ Level অর্জিত!';
+
+  // XP sources
+  document.getElementById('gm-xp-topics').innerText = d.topicsXP||0;
+  document.getElementById('gm-xp-revs').innerText   = d.revisionsXP||0;
+  document.getElementById('gm-xp-streak').innerText = d.streakXP||0;
+  document.getElementById('gm-xp-flash').innerText  = d.flashXP||0;
+  document.getElementById('gm-xp-pomo').innerText   = d.pomoXP||0;
+  document.getElementById('gm-xp-total').innerText  = tot;
+
+  // Leaderboard
+  gmRenderLeaderboard();
+
+  // Badges
+  const bgGrid = document.getElementById('gm-badges-grid');
+  bgGrid.innerHTML = GM_BADGES.map(b => {
+    const earned = b.check(d);
+    return `<div class="gm-badge-item ${earned?'earned':'locked'}">
+      <span class="gm-badge-emoji">${b.emoji}</span>
+      <div><div class="gm-badge-name">${b.name}</div><div class="gm-badge-desc">${b.desc}</div></div>
+    </div>`;
+  }).join('');
+
+  // Milestones (next 5 unachieved level targets)
+  const mlList = document.getElementById('gm-milestones-list');
+  const upcoming = GM_LEVELS.filter(l => l.level > lvl.level).slice(0,5);
+  mlList.innerHTML = upcoming.map(l => {
+    const need = l.xp - tot;
+    return `<div class="gm-milestone-row">
+      <div class="gm-ms-emoji">${l.emoji}</div>
+      <div class="gm-ms-info">
+        <div class="gm-ms-name">Level ${l.level} — ${l.name}</div>
+        <div class="gm-ms-req">আরো ${need} XP দরকার (মোট ${l.xp} XP)</div>
+      </div>
+      <div class="gm-ms-status locked"><i class="fa-solid fa-lock"></i> ${need} XP</div>
+    </div>`;
+  }).join('') || `<div class="gm-ms-emoji" style="text-align:center;padding:20px;font-size:28px">🏆</div><div style="text-align:center;color:var(--muted);font-size:12px">সর্বোচ্চ Level অর্জিত!</div>`;
+}
+
+// ── Weekly leaderboard render ──
+function gmWeekTab(mode){
+  _gmWeekMode = mode;
+  ['xp','topics','revs'].forEach(m => {
+    document.getElementById('gm-wt-'+m).classList.toggle('active', m===mode);
+  });
+  gmRenderLeaderboard();
+}
+
+function gmRenderLeaderboard(){
+  const d = gmGet();
+  const wlog = d.weeklyLog || {};
+  const thisWk = gmWeekKey(new Date());
+
+  // Get last 8 weeks sorted newest first
+  const weeks = Object.keys(wlog)
+    .sort((a,b) => b.localeCompare(a))
+    .slice(0, 8);
+
+  if(!weeks.length){
+    document.getElementById('gm-leaderboard').innerHTML =
+      `<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">এখনো কোনো সাপ্তাহিক data নেই।<br>Topics complete করলে এখানে দেখাবে।</div>`;
+    return;
+  }
+
+  // Sort by selected mode
+  const getVal = (wk) => {
+    const entry = wlog[wk] || {};
+    if(_gmWeekMode==='xp')     return entry.xp||0;
+    if(_gmWeekMode==='topics') return entry.topics||0;
+    if(_gmWeekMode==='revs')   return entry.revs||0;
+    return 0;
+  };
+
+  const sorted = [...weeks].sort((a,b) => getVal(b) - getVal(a));
+  const rankOf = (wk) => sorted.indexOf(wk) + 1;
+  const medals = ['🥇','🥈','🥉'];
+  const rankCls = ['gold','silver','bronze'];
+
+  const lb = document.getElementById('gm-leaderboard');
+  lb.innerHTML = weeks.map(wk => {
+    const val = getVal(wk);
+    const rank = rankOf(wk);
+    const { label, isCurrent } = gmWeekLabel(wk);
+    const entry = wlog[wk] || {};
+    const rankStr = rank<=3 ? medals[rank-1] : '#'+rank;
+    const rankC   = rank<=3 ? rankCls[rank-1] : '';
+    const unit    = _gmWeekMode==='xp' ? 'XP' : (_gmWeekMode==='topics' ? 'topics' : 'revisions');
+
+    return `<div class="gm-lb-row ${isCurrent?'current-week':''}">
+      <div class="gm-lb-rank ${rankC}">${rankStr}</div>
+      <div style="flex:1">
+        <div class="gm-lb-week-label">${label}</div>
+        <div class="gm-lb-week-sub">${entry.topics||0} topics · ${entry.revs||0} revisions · ${entry.pomoSessions||0} sessions</div>
+      </div>
+      <div class="gm-lb-xp">${val} ${unit}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Hooks into existing actions ──
+
+// Called when topic is completed (patch into doComplete)
+function gmOnTopicComplete(){
+  const sk = skGet();
+  gmEarnXP('topic', GM_XP.topicComplete, 'Topic Complete');
+  // Streak bonus: streak days * 3 XP, but only once per day
+  const today = systemToday;
+  const d = gmGet();
+  const wk = gmWeekKey(new Date());
+  const todayStreakBonusDone = d.weeklyLog?.[wk]?._streakBonusDate === today;
+  if(!todayStreakBonusDone && sk.cur > 1){
+    const bonus = Math.min(sk.cur * GM_XP.streakBonus, 90); // cap at 90
+    gmEarnXP('streak', bonus, `${sk.cur}-day streak bonus`);
+    // Mark streak bonus as done for today
+    const dd = gmGet();
+    if(!dd.weeklyLog) dd.weeklyLog = {};
+    if(!dd.weeklyLog[wk]) dd.weeklyLog[wk] = { xp:0, topics:0, revs:0, pomoSessions:0 };
+    dd.weeklyLog[wk]._streakBonusDate = today;
+    gmSave(dd);
+  }
+}
+
+// Called when milestone reviewed
+function gmOnRevision(isCustom){
+  const xp = isCustom ? GM_XP.customRevision : GM_XP.revisionDone;
+  gmEarnXP('rev', xp, isCustom ? 'Custom Revision' : 'Milestone Review');
+}
+
+// Called when flashcard rated
+function gmOnFlashcard(){
+  gmEarnXP('flash', GM_XP.flashcardReview, 'Flashcard Review');
+}
+
+// Called when pomodoro session complete
+function gmOnPomo(){
+  gmEarnXP('pomo', GM_XP.pomoSession, 'Pomodoro Session');
+}
+
+
+
+// ══════════════════════════════════════════════════
+//  EXAM SYSTEM
+// ══════════════════════════════════════════════════
+const EXAM_KEY = 'exam_scores_v1';
+
+// Exam state
+let examState = {
+  topicId: null, topicName: '', subject: '', category: '',
+  mode: 'auto',         // 'auto' | 'custom'
+  qCount: 5,
+  customQs: [],         // [{q, correct, wrongs:[]}]
+  questions: [],        // [{q, options:[{text,correct}], explain}]
+  currentQ: 0,
+  answers: [],          // {selected, correct: bool}
+  pendingCompleteUrl: null,
+  pendingFcCards: null
+};
+
+// Persistent scores: { [topicId]: [{date, score, total, pct, grade, topicName}] }
+let examScores = {};
+
+async function examScoresLoad(){
+  try { const d = await kvGet(EXAM_KEY); if(d) examScores = d; } catch(e){}
+}
+async function examScoresSave(){
+  try { await kvPut(EXAM_KEY, examScores); } catch(e){}
+}
+
+// Grade helper
+function examGrade(pct){
+  if(pct>=90) return { g:'S', label:'অসাধারণ!',      emoji:'🏆', color:'var(--gold2)' };
+  if(pct>=75) return { g:'A', label:'দুর্দান্ত!',    emoji:'🎯', color:'var(--teal)'  };
+  if(pct>=60) return { g:'B', label:'ভালো!',          emoji:'👍', color:'var(--sky)'   };
+  if(pct>=40) return { g:'C', label:'মাঝামাঝি।',     emoji:'😐', color:'var(--accent2)'};
+  return              { g:'F', label:'আরো পড়তে হবে!', emoji:'📖', color:'var(--rose)'  };
+}
+
+// ── Open exam flow (replaces openCompleteModal direct call) ──
+function openCompleteWithExam(id, name){
+  // Find topic meta
+  let subject='', category='';
+  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+    if(t.id===id){ subject=t.subject||''; category=t.category||''; }
+  }));
+
+  examState.topicId = id;
+  examState.topicName = name;
+  examState.subject = subject;
+  examState.category = category;
+  examState.customQs = [];
+  examState.questions = [];
+  examState.answers = [];
+  examState.currentQ = 0;
+  examState.qCount = 5;
+  examState.mode = 'auto';
+  examState.pendingCompleteUrl = null;
+  examState.pendingFcCards = null;
+
+  document.getElementById('exam-topic-title').innerText = name;
+  document.getElementById('exam-topic-meta').innerText  = subject + (category?' · '+category:'');
+
+  // Reset to step 1
+  examShowStep('choose');
+  document.getElementById('exam-overlay').classList.add('visible');
+}
+
+function examShowStep(step){
+  ['choose','config','run','result'].forEach(s=>
+    document.getElementById('exam-step-'+s).style.display = s===step?'block':'none'
+  );
+}
+
+function examClose(){
+  document.getElementById('exam-overlay').classList.remove('visible');
+}
+
+function examBackToChoose(){
+  examState.customQs = [];
+  examCustomRender();
+  examShowStep('choose');
+}
+
+function examGoConfig(mode){
+  examState.mode = mode;
+  document.getElementById('exam-config-title').innerText = mode==='auto'
+    ? '🤖 AI Auto MCQ — কতটা প্রশ্ন?' : '✍️ নিজে Question লিখো';
+  document.getElementById('exam-config-sub').innerText = mode==='auto'
+    ? 'AI এই topic থেকে MCQ generate করবে।'
+    : 'প্রশ্ন যোগ করো তারপর exam শুরু হবে।';
+  document.getElementById('exam-custom-area').style.display = mode==='custom'?'block':'none';
+  examShowStep('config');
+}
+
+function examAdjQ(delta){
+  let v = parseInt(document.getElementById('exam-q-count').innerText) + delta;
+  v = Math.max(1, Math.min(20, v));
+  document.getElementById('exam-q-count').innerText = v;
+  examState.qCount = v;
+}
+
+// Custom question add
+function examAddCustomQ(){
+  const q  = document.getElementById('exam-cq-q').value.trim();
+  const a  = document.getElementById('exam-cq-a').value.trim();
+  const w1 = document.getElementById('exam-cq-w1').value.trim();
+  const w2 = document.getElementById('exam-cq-w2').value.trim();
+  const w3 = document.getElementById('exam-cq-w3').value.trim();
+  if(!q||!a){ alert('প্রশ্ন ও সঠিক উত্তর লিখুন।'); return; }
+  examState.customQs.push({ q, correct:a, wrongs:[w1,w2,w3].filter(Boolean) });
+  ['exam-cq-q','exam-cq-a','exam-cq-w1','exam-cq-w2','exam-cq-w3'].forEach(id=>{ document.getElementById(id).value=''; });
+  examCustomRender();
+  // update count
+  document.getElementById('exam-q-count').innerText = examState.customQs.length;
+  examState.qCount = examState.customQs.length;
+}
+
+function examCustomRender(){
+  const el = document.getElementById('exam-custom-list');
+  el.innerHTML = examState.customQs.map((q,i)=>
+    `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
+      <div style="flex:1;font-size:11px;color:var(--text)">${q.q}<br><span style="color:var(--teal);font-size:10px">✓ ${q.correct}</span></div>
+      <button onclick="examDelCustomQ(${i})" style="background:none;border:none;color:var(--rose);cursor:pointer;font-size:11px"><i class="fa-solid fa-xmark"></i></button>
+    </div>`
+  ).join('');
+}
+
+function examDelCustomQ(i){
+  examState.customQs.splice(i,1);
+  examCustomRender();
+  examState.qCount = examState.customQs.length;
+  document.getElementById('exam-q-count').innerText = examState.qCount;
+}
+
+// ── Start exam ──
+async function examStart(){
+  examState.qCount = parseInt(document.getElementById('exam-q-count').innerText)||5;
+  examState.answers = [];
+  examState.currentQ = 0;
+
+  if(examState.mode==='custom'){
+    if(!examState.customQs.length){ alert('অন্তত একটি প্রশ্ন যোগ করো।'); return; }
+    // Build question objects from custom
+    examState.questions = examState.customQs.map(cq=>{
+      // Build options: correct + wrongs shuffled, pad with placeholders if needed
+      let wrongs = [...cq.wrongs];
+      while(wrongs.length < 3) wrongs.push('—');
+      const options = [
+        {text: cq.correct, correct: true},
+        ...wrongs.slice(0,3).map(w=>({text:w, correct:false}))
+      ].sort(()=>Math.random()-.5);
+      return { q: cq.q, options, explain: '' };
+    });
+    examShowStep('run');
+    examRenderQuestion();
+  } else {
+    // Auto: fetch from AI
+    examShowStep('run');
+    document.getElementById('exam-question').innerHTML = `
+      <div class="exam-loading-q">
+        <div class="ai-mot-dot"></div><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div>
+        <span>AI প্রশ্ন তৈরি করছে…</span>
+      </div>`;
+    document.getElementById('exam-options').innerHTML = '';
+    document.getElementById('exam-next-btn').style.display = 'none';
+    await examFetchAIQuestions();
+  }
+}
+
+async function examFetchAIQuestions(){
+  const n = examState.qCount;
+  const topic = examState.topicName;
+  const subject = examState.subject;
+  const category = examState.category;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1800,
+        system:`তুমি একজন expert question setter। তোমাকে একটি topic-এর উপর MCQ তৈরি করতে হবে।
+STRICT JSON ONLY — no markdown, no extra text.
+Format:
+[
+  {
+    "q": "প্রশ্ন (বাংলা বা English, topic অনুযায়ী)",
+    "options": [
+      {"text":"সঠিক উত্তর", "correct":true},
+      {"text":"ভুল ১", "correct":false},
+      {"text":"ভুল ২", "correct":false},
+      {"text":"ভুল ৩", "correct":false}
+    ],
+    "explain": "কেন এটা সঠিক — এক বাক্যে"
+  }
+]
+নিয়ম: options এ সর্বদা 4টি থাকবে, random order এ। প্রশ্নগুলো conceptual ও varied হবে।`,
+        messages:[{role:"user", content:`Topic: "${topic}", Subject: "${subject}", Category: "${category}"\nমোট ${n}টি MCQ তৈরি করো।`}]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content.map(c=>c.text||'').join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    examState.questions = parsed.slice(0, n).map(q=>({
+      ...q,
+      options: q.options.sort(()=>Math.random()-.5)
+    }));
+    examRenderQuestion();
+  } catch(e){
+    // Fallback generic questions
+    examState.questions = Array.from({length:n},(_,i)=>({
+      q:`"${examState.topicName}" সম্পর্কে প্রশ্ন ${i+1} — AI unavailable, নিজে উত্তর দাও।`,
+      options:[
+        {text:'আমি বুঝেছি',correct:true},{text:'আমি বুঝিনি',correct:false},
+        {text:'আংশিক বুঝেছি',correct:false},{text:'Skip',correct:false}
+      ],
+      explain:'AI-এর সাথে connection নেই। Honest ভাবে উত্তর দাও।'
+    }));
+    examRenderQuestion();
+  }
+}
+
+function examRenderQuestion(){
+  const q = examState.questions[examState.currentQ];
+  const total = examState.questions.length;
+  const cur   = examState.currentQ + 1;
+
+  document.getElementById('exam-prog-fill').style.width = Math.round((examState.currentQ/total)*100)+'%';
+  document.getElementById('exam-q-counter').innerText = `প্রশ্ন ${cur} / ${total}`;
+  document.getElementById('exam-question').innerText = q.q;
+  document.getElementById('exam-explain').style.display = 'none';
+  document.getElementById('exam-next-btn').style.display = 'none';
+
+  const keys = ['A','B','C','D'];
+  document.getElementById('exam-options').innerHTML = q.options.map((opt,i)=>`
+    <div class="exam-option" onclick="examSelectOption(this,${i})" data-idx="${i}">
+      <div class="exam-option-key">${keys[i]}</div>
+      <div style="flex:1">${opt.text}</div>
+    </div>`).join('');
+}
+
+function examSelectOption(el, idx){
+  // Prevent re-selecting after answer
+  if(el.classList.contains('answered')) return;
+  const q = examState.questions[examState.currentQ];
+  const isCorrect = q.options[idx].correct;
+  examState.answers.push({ selected: idx, correct: isCorrect });
+
+  // Mark all options
+  document.querySelectorAll('.exam-option').forEach((opt,i)=>{
+    opt.classList.add('answered');
+    if(q.options[i].correct) opt.classList.add(i===idx?'correct':'revealed');
+    else if(i===idx && !isCorrect) opt.classList.add('wrong');
+  });
+
+  // Show explanation
+  if(q.explain){
+    const ex = document.getElementById('exam-explain');
+    ex.style.display = 'block';
+    ex.innerHTML = `<i class="fa-solid fa-lightbulb" style="color:var(--gold2)"></i> ${q.explain}`;
+  }
+
+  // Show next/finish btn
+  const nextBtn = document.getElementById('exam-next-btn');
+  nextBtn.style.display = 'block';
+  const isLast = examState.currentQ >= examState.questions.length - 1;
+  nextBtn.innerText = isLast ? '📊 ফলাফল দেখো' : 'পরবর্তী প্রশ্ন →';
+}
+
+function examNext(){
+  examState.currentQ++;
+  if(examState.currentQ >= examState.questions.length){
+    examShowResult();
+  } else {
+    examRenderQuestion();
+  }
+}
+
+function examShowResult(){
+  const correct = examState.answers.filter(a=>a.correct).length;
+  const total   = examState.questions.length;
+  const pct     = total ? Math.round(correct/total*100) : 0;
+  const g       = examGrade(pct);
+  const xp      = correct * 15 + (pct>=75 ? 30 : pct>=50 ? 15 : 0);
+
+  document.getElementById('exam-res-emoji').innerText = g.emoji;
+  document.getElementById('exam-res-score').innerText = `${correct}/${total}`;
+  document.getElementById('exam-res-grade').innerText = `Grade ${g.g} — ${g.label}`;
+  document.getElementById('exam-res-sub').innerText   = `${pct}% সঠিক · ${examState.topicName}`;
+  document.getElementById('exam-res-xp').innerHTML    = `<i class="fa-solid fa-bolt"></i> +${xp} XP অর্জিত`;
+  document.getElementById('exr-correct').innerText = correct;
+  document.getElementById('exr-wrong').innerText   = total - correct;
+  document.getElementById('exr-pct').innerText     = pct + '%';
+
+  // Give XP
+  if(xp > 0) gmEarnXP('exam', xp, `Exam: ${examState.topicName}`);
+
+  // Save score to persistent store
+  const id = examState.topicId;
+  if(!examScores[id]) examScores[id] = [];
+  examScores[id].push({
+    date: systemToday,
+    score: correct, total, pct,
+    grade: g.g,
+    topicName: examState.topicName,
+    subject: examState.subject
+  });
+  examScoresSave();
+
+  // Confetti if good
+  if(pct >= 75) confetti({particleCount:80, spread:80, origin:{y:.6}, colors:['#d4a843','#f5c869','#3ecfaa']});
+
+  document.getElementById('exam-prog-fill').style.width = '100%';
+  examShowStep('result');
+}
+
+function examRetry(){
+  examState.answers = [];
+  examState.currentQ = 0;
+  examShowStep('run');
+  if(examState.mode==='auto') examFetchAIQuestions();
+  else examRenderQuestion();
+}
+
+function examProceedComplete(){
+  examClose();
+  // Open the original complete modal
+  openCompleteModal(examState.topicId, examState.topicName);
+}
+
+function examSkipToComplete(){
+  examClose();
+  openCompleteModal(examState.topicId, examState.topicName);
+}
+
+// Patch the "Done" button in daily log to go through exam first
+// Override renderDaily's complete button target
+const _origOpenCompleteModal = openCompleteModal;
+// We intercept via the topic-item complete-btn onclick (already calls openCompleteWithExam via renderDaily patch below)
+
+// Patch renderDaily to use exam flow
+const _origRenderDaily = renderDaily;
+window.renderDaily = function(){
+  _origRenderDaily();
+  // Replace all complete-btn onclick handlers to go through exam
+  document.querySelectorAll('.complete-btn').forEach(btn=>{
+    const orig = btn.getAttribute('onclick')||'';
+    // orig is like: openCompleteModal(123,'Topic Name')
+    const match = orig.match(/openCompleteModal\((\d+),'(.*)'\)/);
+    if(match){
+      const id = parseInt(match[1]);
+      const name = match[2];
+      btn.setAttribute('onclick', `openCompleteWithExam(${id},'${name.replace(/'/g,"\\'")}')`);
+    }
+  });
+};
+
+// Exam score badge on completed topics
+function examGetBadgeHTML(topicId){
+  const scores = examScores[topicId];
+  if(!scores || !scores.length) return '';
+  const last = scores[scores.length-1];
+  const g = examGrade(last.pct);
+  return `<span class="exam-score-badge" title="Exam: ${last.pct}% · ${last.date}" onclick="examShowHistory(${topicId})">
+    <i class="fa-solid fa-graduation-cap"></i> ${last.pct}% ${g.g}
+  </span>`;
+}
+
+function examShowHistory(topicId){
+  const scores = examScores[topicId]||[];
+  if(!scores.length){ alert('কোনো exam record নেই।'); return; }
+  const rows = scores.map(s=>{
+    const g = examGrade(s.pct);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span style="font-size:10px;font-family:monospace;color:var(--muted);width:80px">${s.date}</span>
+      <span style="font-size:14px;font-weight:700;color:${g.color}">${s.pct}%</span>
+      <span style="font-size:10px;color:var(--muted2)">${s.score}/${s.total} · Grade ${g.g}</span>
+    </div>`;
+  }).join('');
+  const box = document.createElement('div');
+  box.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:10001;display:flex;align-items:center;justify-content:center';
+  box.innerHTML=`<div style="background:var(--card);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:28px;max-width:440px;width:90%;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-size:13px;font-weight:700;color:var(--gold2)"><i class="fa-solid fa-graduation-cap"></i> Exam History</div>
+      <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">${scores[0]?.topicName||''}</div>
+    ${rows}
+  </div>`;
+  document.body.appendChild(box);
+}
+
+// Init exam on load
+(async function examInit(){
+  await examScoresLoad();
+})();
+
+// ── AI MONITOR SYSTEM ──
+const AIM_KEY = 'aim_data_v2';
+
+// Activity log structure saved to MongoDB via KV
+// { dailyLog: { 'YYYY-MM-DD': { topics, revisions, focusMin, flashcards, score, aiGrade } }, chatHistory: [] }
+let aimData = { dailyLog: {}, chatHistory: [] };
+
+async function aimLoad(){
+  try {
+    const d = await kvGet(AIM_KEY);
+    if(d) aimData = d;
+  } catch(e){}
+}
+async function aimSave(){
+  try { await kvPut(AIM_KEY, aimData); } catch(e){}
+}
+
+// Compute today's raw stats from existing app data
+function aimTodayStats(){
+  const d = systemToday;
+  const topics  = (dbTopics[d]||[]).filter(t=>t.status==='Complete').length;
+  const revisions = (()=>{
+    let r=0;
+    Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+      if(t.status!=='Complete') return;
+      const diff=Math.round(Math.abs(new Date(d)-new Date(t.completionDate))/(86400000));
+      if([1,3,7,30].includes(diff)&&(t.reviewsDone||[]).includes(diff)) r++;
+      if((t.customReviewHistoryDates||[]).includes(d)) r++;
+    }));
+    return r;
+  })();
+  const focusMin = (() => {
+    const sessions = (pomoData.sessions||[]).filter(s=>s.date===d||s.startTime?.startsWith(d));
+    return sessions.reduce((sum,s)=>sum+(s.durationMin||0),0) ||
+           Math.round((pomoData.sessions||[]).length * (pomoData.focusMinutes||25) * 0.7);
+  })();
+  const flashcards = (() => {
+    const gm = gmGet();
+    const wk = gmWeekKey(new Date());
+    return (gm.weeklyLog?.[wk]?.flash)||0;
+  })();
+  return { topics, revisions, focusMin, flashcards };
+}
+
+// Score formula: topics*20 + revisions*15 + focusMin*0.5 + flashcards*5, capped 100
+function aimCalcScore(stats){
+  const raw = stats.topics*20 + stats.revisions*15 + Math.min(stats.focusMin,120)*0.42 + stats.flashcards*5;
+  return Math.min(100, Math.round(raw));
+}
+function aimGrade(score){
+  if(score>=90) return { grade:'S', color:'var(--gold2)', label:'অসাধারণ! তুমি Legend!' };
+  if(score>=75) return { grade:'A', color:'var(--teal)',  label:'দুর্দান্ত performance!' };
+  if(score>=55) return { grade:'B', color:'var(--sky)',   label:'ভালো, আরো push করো!' };
+  if(score>=35) return { grade:'C', color:'var(--accent2)',label:'মাঝামাঝি, better চাই!' };
+  if(score>=15) return { grade:'D', color:'var(--gold)',  label:'কম হয়েছে আজ…' };
+  return          { grade:'F', color:'var(--rose)',       label:'আজ কোনো কাজ হয়নি!' };
+}
+
+// Persist today's log entry
+async function aimPersistToday(){
+  const stats = aimTodayStats();
+  const score = aimCalcScore(stats);
+  const g = aimGrade(score);
+  if(!aimData.dailyLog) aimData.dailyLog = {};
+  aimData.dailyLog[systemToday] = { ...stats, score, aiGrade: g.grade, savedAt: new Date().toISOString() };
+  await aimSave();
+  return { stats, score, g };
+}
+
+// Render Today's Score card
+async function aimRenderToday(){
+  const { stats, score, g } = await aimPersistToday();
+
+  document.getElementById('aim-today-score').innerText = score;
+  document.getElementById('aim-today-score').style.background = `linear-gradient(135deg,${g.color},var(--accent2))`;
+  document.getElementById('aim-today-score').style.webkitBackgroundClip = 'text';
+  document.getElementById('aim-today-score').style.webkitTextFillColor = 'transparent';
+  document.getElementById('aim-today-grade').innerText = `Grade ${g.grade} — ${g.label}`;
+  document.getElementById('aim-today-sub').innerText = `${systemToday} · Score: ${score}/100`;
+
+  const pct = (v, max) => Math.min(100, Math.round(v/max*100)) + '%';
+  document.getElementById('aim-bar-topics').style.width  = pct(stats.topics, 10);
+  document.getElementById('aim-bar-revs').style.width    = pct(stats.revisions, 6);
+  document.getElementById('aim-bar-focus').style.width   = pct(stats.focusMin, 120);
+  document.getElementById('aim-bar-flash').style.width   = pct(stats.flashcards, 20);
+  document.getElementById('aim-val-topics').innerText  = stats.topics;
+  document.getElementById('aim-val-revs').innerText    = stats.revisions;
+  document.getElementById('aim-val-focus').innerText   = stats.focusMin + 'm';
+  document.getElementById('aim-val-flash').innerText   = stats.flashcards;
+
+  // Streak & status
+  const sk = skGet();
+  document.getElementById('aim-streak-num').innerText = sk.cur || 0;
+  document.getElementById('aim-streak-sub').innerText = sk.cur > 0
+    ? `${sk.cur} দিন ধরে consistent! 🔥`
+    : 'আজ কিছু complete করো streak শুরু হবে।';
+
+  // Status dot
+  const dot = document.getElementById('aim-dot');
+  const stxt= document.getElementById('aim-status-text');
+  const ssub= document.getElementById('aim-status-sub');
+  if(score === 0){ dot.className='aim-status-dot alarm'; stxt.innerText='কোনো Activity নেই!'; ssub.innerText='এখনই কাজ শুরু করো। AI তোমার জন্য অপেক্ষা করছে।'; }
+  else if(score < 40){ dot.className='aim-status-dot idle'; stxt.innerText='কম Active'; ssub.innerText=`Score ${score}. আরো push করো।`; }
+  else { dot.className='aim-status-dot active'; stxt.innerText='Active — ভালো যাচ্ছে!'; ssub.innerText=`আজকের Score: ${score}/100`; }
+
+  // Week dots
+  aimRenderWeekDots();
+}
+
+function aimRenderWeekDots(){
+  const el = document.getElementById('aim-week-dots');
+  el.innerHTML = '';
+  const dayNames = ['শ','র','সো','ম','বু','বৃ','শু'];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = getLocalDateStr(d);
+    const entry = (aimData.dailyLog||{})[ds];
+    const done  = entry && entry.score > 0;
+    const isToday = ds === systemToday;
+    const dayIdx = d.getDay(); // 0=Sun
+    const labels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const div = document.createElement('div');
+    div.className = 'aim-week-dot' + (done?' done':'') + (isToday?' today':'');
+    div.title = `${ds}: Score ${entry?.score||0}`;
+    div.innerHTML = `<span>${labels[d.getDay()]}</span><span style="font-size:10px;font-weight:700">${done?(entry.aiGrade||'✓'):'—'}</span>`;
+    el.appendChild(div);
+  }
+}
+
+// Daily report list (last 14 days)
+function aimRenderDailyList(){
+  const el = document.getElementById('aim-daily-list');
+  el.innerHTML = '';
+  const log = aimData.dailyLog || {};
+  const dates = Object.keys(log).sort((a,b)=>b.localeCompare(a)).slice(0,14);
+  if(!dates.length){ el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">এখনো কোনো daily record নেই। কাজ শুরু করো!</div>`; return; }
+  dates.forEach(ds => {
+    const e = log[ds];
+    const g = aimGrade(e.score||0);
+    el.innerHTML += `<div class="aim-history-item">
+      <div class="aim-hi-date">${ds}</div>
+      <div class="aim-hi-score" style="color:${g.color}">${e.score||0}</div>
+      <div class="aim-hi-bar"><div class="aim-hi-fill" style="width:${e.score||0}%;background:${g.color}"></div></div>
+      <div class="aim-hi-grade" style="color:${g.color}">${e.aiGrade||'—'}</div>
+      <div style="font-size:10px;color:var(--muted);margin-left:8px">${e.topics||0}✅ ${e.revisions||0}🔄 ${e.focusMin||0}m</div>
+    </div>`;
+  });
+}
+
+// Weekly report
+function aimRenderWeeklyList(){
+  const el = document.getElementById('aim-weekly-list');
+  el.innerHTML = '';
+  const log = aimData.dailyLog || {};
+  // Group by week
+  const weeks = {};
+  Object.entries(log).forEach(([ds, e])=>{
+    const d = new Date(ds);
+    const wk = gmWeekKey(d);
+    if(!weeks[wk]) weeks[wk] = { days:0, totalScore:0, topics:0, revisions:0, focusMin:0, flashcards:0 };
+    weeks[wk].days++;
+    weeks[wk].totalScore += e.score||0;
+    weeks[wk].topics     += e.topics||0;
+    weeks[wk].revisions  += e.revisions||0;
+    weeks[wk].focusMin   += e.focusMin||0;
+    weeks[wk].flashcards += e.flashcards||0;
+  });
+  const sorted = Object.keys(weeks).sort((a,b)=>b.localeCompare(a)).slice(0,12);
+  if(!sorted.length){ el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">কোনো weekly data নেই।</div>`; return; }
+  sorted.forEach(wk => {
+    const w = weeks[wk];
+    const avg = w.days ? Math.round(w.totalScore/w.days) : 0;
+    const g   = aimGrade(avg);
+    const { label: wLabel } = gmWeekLabel(wk);
+    el.innerHTML += `<div class="aim-history-item">
+      <div class="aim-hi-date" style="width:90px">${wLabel}</div>
+      <div class="aim-hi-score" style="color:${g.color}">${avg}</div>
+      <div class="aim-hi-bar"><div class="aim-hi-fill" style="width:${avg}%;background:${g.color}"></div></div>
+      <div class="aim-hi-grade" style="color:${g.color}">${g.grade}</div>
+      <div style="font-size:10px;color:var(--muted);margin-left:8px">${w.topics}✅ ${w.revisions}🔄 ${w.days}দিন ${w.focusMin}m</div>
+    </div>`;
+  });
+}
+
+// Monthly compare grid
+function aimRenderMonthlyGrid(){
+  const el = document.getElementById('aim-monthly-grid');
+  el.innerHTML = '';
+  const log = aimData.dailyLog || {};
+  const months = {};
+  Object.entries(log).forEach(([ds,e])=>{
+    const mo = ds.slice(0,7); // YYYY-MM
+    if(!months[mo]) months[mo]={days:0,total:0,topics:0};
+    months[mo].days++;
+    months[mo].total += e.score||0;
+    months[mo].topics+= e.topics||0;
+  });
+  const sorted = Object.keys(months).sort((a,b)=>b.localeCompare(a)).slice(0,9);
+  if(!sorted.length){ el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;grid-column:1/-1">কোনো monthly data নেই।</div>`; return; }
+  const maxAvg = Math.max(...sorted.map(m=>months[m].days?Math.round(months[m].total/months[m].days):0));
+  sorted.forEach(mo => {
+    const m = months[mo];
+    const avg = m.days ? Math.round(m.total/m.days) : 0;
+    const g   = aimGrade(avg);
+    const isBest = avg === maxAvg && maxAvg > 0;
+    const [yr,mn] = mo.split('-');
+    const moName = new Date(+yr,+mn-1,1).toLocaleString('bn-BD',{month:'long'});
+    el.innerHTML += `<div class="aim-compare-card ${isBest?'best':''}">
+      ${isBest?'<div style="font-size:9px;color:var(--teal);font-weight:700;margin-bottom:4px">⭐ সেরা মাস</div>':''}
+      <div class="aim-compare-month">${moName} ${yr}</div>
+      <div class="aim-compare-num" style="color:${g.color}">${avg}</div>
+      <div class="aim-compare-grade" style="color:${g.color}">Grade ${g.grade}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">${m.days} দিন · ${m.topics} topics</div>
+    </div>`;
+  });
+}
+
+// Lifetime grid
+function aimRenderLifetimeGrid(){
+  const el = document.getElementById('aim-lifetime-grid');
+  el.innerHTML = '';
+  const log = aimData.dailyLog || {};
+  const sorted = Object.keys(log).sort((a,b)=>b.localeCompare(a));
+  let totalTopics=0, totalRevs=0, totalFocus=0, perfectDays=0;
+  sorted.forEach(ds=>{
+    const e = log[ds];
+    const g = aimGrade(e.score||0);
+    totalTopics += e.topics||0;
+    totalRevs   += e.revisions||0;
+    totalFocus  += e.focusMin||0;
+    if((e.score||0)>=90) perfectDays++;
+    el.innerHTML += `<div style="background:var(--bg2);border:1px solid ${g.color}33;border-radius:10px;padding:10px;text-align:center;cursor:pointer" title="${ds}">
+      <div style="font-size:9px;color:var(--muted)">${ds.slice(5)}</div>
+      <div style="font-family:'Instrument Serif',serif;font-size:22px;color:${g.color};line-height:1.2">${g.grade}</div>
+      <div style="font-size:10px;color:var(--muted2)">${e.score||0}</div>
+    </div>`;
+  });
+  const total = document.getElementById('aim-lifetime-total');
+  if(!sorted.length){ el.innerHTML=`<div style="color:var(--muted);font-size:12px;grid-column:1/-1;text-align:center;padding:20px">কোনো data নেই।</div>`; }
+  total.innerHTML = `মোট ${sorted.length} দিন ট্র্যাক · ${totalTopics} topics · ${totalRevs} revisions · ${Math.round(totalFocus/60)} ঘণ্টা focus · ${perfectDays} perfect days ⭐`;
+}
+
+// Tab switching
+let aimCurrentTab = 'daily';
+function aimTab(tab){
+  aimCurrentTab = tab;
+  ['daily','weekly','monthly','lifetime','aireport'].forEach(t=>{
+    document.getElementById('aim-panel-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('aim-rt-'+t).classList.toggle('active', t===tab);
+  });
+  if(tab==='daily')    aimRenderDailyList();
+  if(tab==='weekly')   aimRenderWeeklyList();
+  if(tab==='monthly')  aimRenderMonthlyGrid();
+  if(tab==='lifetime') aimRenderLifetimeGrid();
+  if(tab==='aireport') aimGenerateAIReport('weekly');
+}
+
+// AI Chat — ask anything
+async function aimAskAI(){
+  const stats = aimTodayStats();
+  const score = aimCalcScore(stats);
+  const g     = aimGrade(score);
+  const log   = aimData.dailyLog || {};
+  const last7 = Object.keys(log).sort((a,b)=>b.localeCompare(a)).slice(0,7)
+    .map(d=>`${d}: score=${log[d].score} topics=${log[d].topics} revs=${log[d].revisions}`).join('\n');
+  const sk = skGet();
+
+  aimAddMsg('ai', '<span class="aim-ai-report-loading"><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div> <span>ভাবছি…</span></span>');
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:400,
+        system:`তুমি একজন strict কিন্তু caring বাংলা AI coach। তুমি ছাত্রের activity monitor করছ। তুমি real data দেখে সরাসরি, honest feedback দেবে। কাজ না করলে force করবে, কাজ করলে encourage করবে। Response হবে 3-4 টি বাংলা sentence।`,
+        messages:[{role:"user",content:`আমার আজকের stats:\n- Topics completed: ${stats.topics}\n- Revisions done: ${stats.revisions}\n- Focus time: ${stats.focusMin} min\n- Flashcards: ${stats.flashcards}\n- Score: ${score}/100 (Grade ${g.grade})\n- Streak: ${sk.cur||0} days\n\nLast 7 days:\n${last7}\n\nআমাকে honest, direct guide করো।`}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(c=>c.text||'').join('');
+    // Remove the loading message
+    const chatBox = document.getElementById('aim-chat-box');
+    const msgs = chatBox.querySelectorAll('.aim-msg');
+    if(msgs.length) msgs[msgs.length-1].remove();
+    aimAddMsg('ai', text);
+    // Push to history
+    if(!aimData.chatHistory) aimData.chatHistory = [];
+    aimData.chatHistory.push({ role:'ai', text, time: new Date().toISOString() });
+    aimSave();
+  } catch(e){
+    const chatBox = document.getElementById('aim-chat-box');
+    const msgs = chatBox.querySelectorAll('.aim-msg');
+    if(msgs.length) msgs[msgs.length-1].remove();
+    aimAddMsg('ai', 'AI এখন available নেই। কিন্তু আমি দেখছি তুমি কাজ করছ কিনা!');
+  }
+}
+
+// Force mode — aggressive message
+async function aimForceMode(){
+  const stats = aimTodayStats();
+  aimAddMsg('ai', '<span class="aim-ai-report-loading"><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div> FORCE MODE চালু হচ্ছে…</span>');
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:300,
+        system:`তুমি একজন ultra-strict drill sergeant AI coach। তুমি ছাত্রকে এখনই কাজ শুরু করতে বাধ্য করবে। কোনো excuse নেই। Direct, aggressive, motivating বাংলায় বলো। 3-4 sentence।`,
+        messages:[{role:"user",content:`এখন পর্যন্ত আজ: topics=${stats.topics}, focus=${stats.focusMin}min। FORCE MODE। আমাকে এখনই কাজ শুরু করতে বাধ্য করো।`}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(c=>c.text||'').join('');
+    const chatBox = document.getElementById('aim-chat-box');
+    const msgs = chatBox.querySelectorAll('.aim-msg');
+    if(msgs.length) msgs[msgs.length-1].remove();
+    aimAddForceMsg(text);
+  } catch(e){
+    const chatBox = document.getElementById('aim-chat-box');
+    const msgs = chatBox.querySelectorAll('.aim-msg');
+    if(msgs.length) msgs[msgs.length-1].remove();
+    aimAddForceMsg('🚨 এখনই উঠে বসো। Phone রাখো। ১টা topic নাও। START! কোনো excuse নেই!');
+  }
+}
+
+function aimAddMsg(type, text){
+  const chatBox = document.getElementById('aim-chat-box');
+  const div = document.createElement('div');
+  div.className = 'aim-msg';
+  const now = new Date().toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML = `<div class="aim-msg-avatar ai"><i class="fa-solid fa-robot"></i></div>
+    <div><div class="aim-msg-bubble ai-bubble">${text}</div><div class="aim-msg-time">${now}</div></div>`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function aimAddForceMsg(text){
+  const chatBox = document.getElementById('aim-chat-box');
+  const div = document.createElement('div');
+  div.className = 'aim-msg';
+  const now = new Date().toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML = `<div class="aim-msg-avatar ai" style="background:rgba(224,90,122,.2);border-color:rgba(224,90,122,.3);color:var(--rose)"><i class="fa-solid fa-bolt"></i></div>
+    <div><div class="aim-msg-bubble force-bubble">⚡ ${text}</div><div class="aim-msg-time">${now}</div></div>`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// AI Full Report
+async function aimGenerateAIReport(type='weekly'){
+  const el = document.getElementById('aim-ai-report-body');
+  const hdr= document.getElementById('aim-ai-report-box').querySelector('.aim-ai-report-header');
+  el.innerHTML = `<div class="aim-ai-report-loading"><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div> <span>AI report তৈরি হচ্ছে…</span></div>`;
+  hdr.innerHTML = `<i class="fa-solid fa-robot"></i> AI ${type === 'weekly'?'Weekly':type==='monthly'?'Monthly':'Lifetime'} Report`;
+
+  const log = aimData.dailyLog || {};
+  let dataStr = '';
+  const now = new Date();
+
+  if(type==='weekly'){
+    for(let i=6;i>=0;i--){ const d=new Date(now); d.setDate(d.getDate()-i); const ds=getLocalDateStr(d); const e=log[ds]||{}; dataStr+=`${ds}: score=${e.score||0}, grade=${e.aiGrade||'N/A'}, topics=${e.topics||0}, revs=${e.revisions||0}, focus=${e.focusMin||0}min\n`; }
+  } else if(type==='monthly'){
+    for(let i=29;i>=0;i--){ const d=new Date(now); d.setDate(d.getDate()-i); const ds=getLocalDateStr(d); const e=log[ds]||{}; dataStr+=`${ds}: ${e.score||0}pts\n`; }
+  } else {
+    const sorted=Object.keys(log).sort(); const total=sorted.length; const avgScore=total?Math.round(Object.values(log).reduce((s,e)=>s+(e.score||0),0)/total):0;
+    const best=sorted.reduce((b,d)=>((log[d].score||0)>(log[b]?.score||0)?d:b),sorted[0]);
+    dataStr=`মোট tracked দিন: ${total}\nAverage score: ${avgScore}\nBest day: ${best} (${log[best]?.score||0} pts)\nমোট topics: ${Object.values(log).reduce((s,e)=>s+(e.topics||0),0)}\nমোট revisions: ${Object.values(log).reduce((s,e)=>s+(e.revisions||0),0)}\nমোট focus: ${Object.values(log).reduce((s,e)=>s+(e.focusMin||0),0)} min`;
+  }
+
+  const sk = skGet();
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:600,
+        system:`তুমি একজন expert বাংলা learning coach ও data analyst। তুমি ছাত্রের activity data দেখে comprehensive report দেবে। Report-এ থাকবে: (১) সারসংক্ষেপ, (২) ভালো দিক, (৩) দুর্বল দিক, (৪) specific পরামর্শ। সরাসরি, honest, data-driven হবে।`,
+        messages:[{role:"user",content:`আমার ${type} data:\n${dataStr}\nStreak: ${sk.cur||0}\n\nএকটি comprehensive বাংলা report দাও।`}]
+      })
+    });
+    const data = await res.json();
+    el.innerHTML = data.content.map(c=>c.text||'').join('');
+  } catch(e){
+    el.innerHTML = 'AI report এখন available নেই। পরে try করো।';
+  }
+}
+
+// Auto-init when tab opens
+const _origSwitchTab = switchTab;
+window.switchTab = function(id){
+  _origSwitchTab(id);
+  if(id==='aimonitor'){
+    aimRenderToday();
+    aimRenderDailyList();
+    document.getElementById('aim-init-time').innerText = new Date().toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});
+    // Auto-ask AI on first open
+    setTimeout(aimAskAI, 800);
+  }
+};
+
+// Auto-save today stats every time a topic completes (hook into existing gmOnTopicComplete)
+const _origGmOnTopicComplete = gmOnTopicComplete;
+window.gmOnTopicComplete = function(){
+  _origGmOnTopicComplete();
+  setTimeout(aimPersistToday, 500);
+};
+
+// Init AIM on load
+(async function aimInit(){
+  await aimLoad();
+  // Persist today snapshot silently on each load
+  await aimPersistToday();
+})();
+
 let aiMotCurrentMins = 25;
 let aiMotCurrentSession = 1;
 
