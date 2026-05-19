@@ -7,16 +7,51 @@ const path = require('path');
 const app = express();
 
 // ===================== MIDDLEWARE =====================
-app.use(cors());
+// CORS — local dev এ সব allow, production এ same-origin (Render serve করে)
+const allowedOrigins = [
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
+  'http://localhost:3000',
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    // Render production এ origin undefined থাকে (same-origin request)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: '10mb' }));
 
-// Static frontend serve (production এ)
+// Static frontend serve (production এ Render থেকে)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // ===================== MONGODB CONNECTION =====================
-mongoose.connect(process.env.MONGODB_URI)
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI environment variable not set!');
+  console.error('   .env file এ MONGODB_URI দিন অথবা Render dashboard এ Environment Variable সেট করুন।');
+  process.exit(1);
+}
+
+mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 10000, // 10 seconds timeout
+  socketTimeoutMS: 45000,
+})
   .then(() => console.log('✅ MongoDB Connected Successfully!'))
-  .catch(err => console.error('❌ MongoDB Connection Error:', err));
+  .catch(err => {
+    console.error('❌ MongoDB Connection Error:', err.message);
+    process.exit(1);
+  });
+
+// Connection events
+mongoose.connection.on('disconnected', () => console.warn('⚠️  MongoDB Disconnected'));
+mongoose.connection.on('reconnected', () => console.log('🔄 MongoDB Reconnected'));
 
 // ===================== MONGOOSE SCHEMAS =====================
 
@@ -47,9 +82,6 @@ const Topic = mongoose.model('Topic', topicSchema);
 const Routine = mongoose.model('Routine', routineSchema);
 
 // ===================== HELPER =====================
-// dbTopics format: { "2024-01-01": [topic, topic], ... }
-// DB তে flat store করা হয় topic গুলো, API response এ grouped করা হয়
-
 async function getAllTopicsGrouped() {
   const allTopics = await Topic.find({}).lean();
   const grouped = {};
@@ -150,21 +182,21 @@ app.post('/api/topics/bulk', async (req, res) => {
 
 // ===================== ROUTES: ROUTINE =====================
 
+const defaultRoutine = {
+  "Saturday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Structure–II", "R.C.C–II"], ["Geography", "English"], ["English Speaking"], ["QGIS"], ["Machine Learning"]],
+  "Sunday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Structure–II", "R.C.C–II"], [], ["English Speaking"], ["QGIS"], ["Machine Learning"]],
+  "Monday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Geotech–II", "Steel Structure"], ["Geography", "English"], ["Basic English"], ["SAP 2000"], ["Machine Learning"]],
+  "Tuesday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Geotech–II", "Steel Structure"], [], ["Basic English"], ["SAP 2000"], ["Machine Learning"]],
+  "Wednesday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Transportation", "Earth Quake Engineering", "Structure–I"], ["Geography", "English"], ["Freehand Writing"], ["Excel"], ["Research Class"]],
+  "Thursday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Transportation", "Earth Quake Engineering", "Structure–I"], [], ["Freehand Writing"], ["Excel"], ["Research Class"]],
+  "Friday": [[], [], ["Geography", "English"], [], [], []]
+};
+
 // GET /api/routine
 app.get('/api/routine', async (req, res) => {
   try {
     let routineDoc = await Routine.findOne({ userId: 'default' }).lean();
     if (!routineDoc) {
-      // Default routine return করো
-      const defaultRoutine = {
-        "Saturday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Structure–II", "R.C.C–II"], ["Geography", "English"], ["English Speaking"], ["QGIS"], ["Machine Learning"]],
-        "Sunday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Structure–II", "R.C.C–II"], [], ["English Speaking"], ["QGIS"], ["Machine Learning"]],
-        "Monday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Geotech–II", "Steel Structure"], ["Geography", "English"], ["Basic English"], ["SAP 2000"], ["Machine Learning"]],
-        "Tuesday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Geotech–II", "Steel Structure"], [], ["Basic English"], ["SAP 2000"], ["Machine Learning"]],
-        "Wednesday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Transportation", "Earth Quake Engineering", "Structure–I"], ["Geography", "English"], ["Freehand Writing"], ["Excel"], ["Research Class"]],
-        "Thursday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Transportation", "Earth Quake Engineering", "Structure–I"], [], ["Freehand Writing"], ["Excel"], ["Research Class"]],
-        "Friday": [[], [], ["Geography", "English"], [], [], []]
-      };
       res.json({ success: true, data: defaultRoutine });
     } else {
       res.json({ success: true, data: routineDoc.routine });
@@ -189,6 +221,15 @@ app.put('/api/routine', async (req, res) => {
   }
 });
 
+// ===================== HEALTH CHECK (Render ping এর জন্য) =====================
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    uptime: process.uptime()
+  });
+});
+
 // ===================== CATCH ALL: Serve frontend =====================
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
@@ -198,4 +239,5 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📁 Serving frontend from: ${path.join(__dirname, '../frontend')}`);
 });
