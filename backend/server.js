@@ -109,6 +109,12 @@ app.get('/api/topics', async (req, res) => {
 app.post('/api/topics', async (req, res) => {
   try {
     const topicData = req.body;
+    
+    // যদি ফ্রন্টএন্ড থেকে id না আসে, তবে এখানে একটি ইউনিক id তৈরি করে দেওয়া হচ্ছে
+    if (!topicData.id) {
+      topicData.id = Date.now() + Math.floor(Math.random() * 1000);
+    }
+    
     const topic = new Topic(topicData);
     await topic.save();
     const grouped = await getAllTopicsGrouped();
