@@ -4042,8 +4042,8 @@ const POMO_TOPICS_KEY = 'pm_topics_v1';
 const POMO_CIRCUMFERENCE = 2 * Math.PI * 110; // r=110
 
 // KV API helpers
-async function kvGet(key){ try{ const r=await apiGet('/kv/'+key); return r.data; }catch(e){ return null; } }
-async function kvPut(key,val){ try{ await apiPut('/kv/'+key,val); }catch(e){} }
+async function kvGet(key){ try{ const r=await apiGet('/kv/'+key); if(!r) return null; return r.v !== undefined ? r.v : r; }catch(e){ return null; } }
+async function kvPut(key,val){ try{ await apiPut('/kv/'+key, {v: val}); }catch(e){} }
 
 // State
 let pomoData       = { date: getLocalDateStr(), sessions: [], focusMinutes: 25, restMinutes: 5 };

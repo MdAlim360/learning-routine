@@ -236,9 +236,10 @@ app.get('/api/kv/:key', async (req, res) => {
 // PUT /api/kv/:key
 app.put('/api/kv/:key', async (req, res) => {
   try {
+    const val = req.body; // { v: actualValue }
     await KV.findOneAndUpdate(
       { userId: 'default', key: req.params.key },
-      { userId: 'default', key: req.params.key, value: req.body },
+      { userId: 'default', key: req.params.key, value: val },
       { upsert: true, new: true }
     );
     res.json({ success: true });
