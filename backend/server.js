@@ -8,22 +8,7 @@ const app = express();
 
 // ===================== MIDDLEWARE =====================
 // CORS — local dev এ সব allow, production এ same-origin (Render serve করে)
-const allowedOrigins = [
-  'http://localhost:5000',
-  'http://127.0.0.1:5000',
-  'http://localhost:3000',
-];
-app.use(cors({
-  origin: function (origin, callback) {
-    // Render production এ origin undefined থাকে (same-origin request)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+app.use(cors());
 
 app.use(express.json({ limit: '10mb' }));
 
