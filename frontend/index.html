@@ -7104,7 +7104,7 @@ async function examFetchAIQuestions(){
   const category = examState.category;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages",{
+    const res = await fetch("/api/ai",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
@@ -7597,7 +7597,7 @@ async function aimAskAI(){
   aimAddMsg('ai', '<span class="aim-ai-report-loading"><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div> <span>ভাবছি…</span></span>');
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages",{
+    const res = await fetch("/api/ai",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
@@ -7631,7 +7631,7 @@ async function aimForceMode(){
   const stats = aimTodayStats();
   aimAddMsg('ai', '<span class="aim-ai-report-loading"><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div> FORCE MODE চালু হচ্ছে…</span>');
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages",{
+    const res = await fetch("/api/ai",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
@@ -7700,7 +7700,7 @@ async function aimGenerateAIReport(type='weekly'){
 
   const sk = skGet();
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages",{
+    const res = await fetch("/api/ai",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
@@ -7794,7 +7794,7 @@ async function aiMotivatorFetch(){
     </div>`;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("/api/ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

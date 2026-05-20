@@ -248,6 +248,29 @@ app.put('/api/kv/:key', async (req, res) => {
   }
 });
 
+// ===================== AI PROXY (browser CORS এড়ানোর জন্য) =====================
+app.post('/api/ai', async (req, res) => {
+  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+  if (!ANTHROPIC_API_KEY) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY environment variable not set!' });
+  }
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(req.body)
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ===================== HEALTH CHECK (Render ping এর জন্য) =====================
 app.get('/health', (req, res) => {
   res.json({
