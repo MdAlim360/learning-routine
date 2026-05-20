@@ -3210,6 +3210,162 @@ button, a, input, [onclick] {
 .fc-lib-no-results i { font-size: 28px; opacity: .2; display: block; margin-bottom: 12px; }
 
 /* ══════════════════════════════════════════
+   FLASHCARD STACK VIEW
+══════════════════════════════════════════ */
+.fc-stacks-container { display: flex; flex-direction: column; gap: 18px; }
+
+.fc-stack-cat-group {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.fc-stack-cat-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; user-select: none;
+  transition: background .15s;
+}
+.fc-stack-cat-header:hover { background: rgba(255,255,255,.03); }
+.fc-stack-cat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.fc-stack-cat-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; flex: 1; }
+.fc-stack-cat-stats { display: flex; gap: 6px; align-items: center; }
+.fc-stack-cat-chevron { font-size: 11px; color: var(--muted); transition: transform .25s; }
+.fc-stack-cat-group.open .fc-stack-cat-chevron { transform: rotate(180deg); }
+
+.fc-stack-cat-body { display: none; padding: 14px; }
+.fc-stack-cat-group.open .fc-stack-cat-body { display: block; }
+
+/* Subject level */
+.fc-stack-subj-group {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.fc-stack-subj-group:last-child { margin-bottom: 0; }
+
+.fc-stack-subj-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px;
+  cursor: pointer; user-select: none;
+  transition: background .15s;
+  border-bottom: 1px solid transparent;
+}
+.fc-stack-subj-header:hover { background: rgba(255,255,255,.02); }
+.fc-stack-subj-group.open .fc-stack-subj-header { border-color: var(--border); }
+.fc-stack-subj-name { font-size: 12px; font-weight: 600; color: var(--muted2); flex: 1; display: flex; align-items: center; gap: 7px; }
+.fc-stack-subj-chevron { font-size: 10px; color: var(--muted); transition: transform .25s; }
+.fc-stack-subj-group.open .fc-stack-subj-chevron { transform: rotate(180deg); }
+.fc-stack-subj-body { display: none; padding: 10px 12px; }
+.fc-stack-subj-group.open .fc-stack-subj-body { display: flex; flex-direction: column; gap: 8px; }
+
+/* Topic stack card */
+.fc-topic-stack {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  position: relative;
+  transition: border-color .2s, box-shadow .2s;
+  cursor: pointer;
+}
+.fc-topic-stack:hover {
+  border-color: rgba(124,106,247,.35);
+  box-shadow: 0 4px 20px rgba(124,106,247,.08);
+}
+/* Stacked paper effect */
+.fc-topic-stack::before,
+.fc-topic-stack::after {
+  content: '';
+  position: absolute;
+  left: 8px; right: 8px; border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  z-index: -1;
+}
+.fc-topic-stack::before { bottom: -5px; height: 100%; }
+.fc-topic-stack::after  { bottom: -9px; left: 14px; right: 14px; height: 100%; }
+
+.fc-topic-stack-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  margin-bottom: 10px;
+}
+.fc-topic-stack-name {
+  font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4;
+  flex: 1;
+}
+.fc-topic-stack-count {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(124,106,247,.12);
+  border: 1px solid rgba(124,106,247,.22);
+  color: var(--accent2);
+  font-size: 11px; font-weight: 700;
+  padding: 4px 11px; border-radius: 99px; flex-shrink: 0;
+}
+.fc-topic-stack-count i { font-size: 9px; }
+
+.fc-topic-stack-meta {
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  margin-bottom: 10px;
+}
+.fc-topic-stack-pill {
+  font-size: 9px; font-weight: 600; padding: 2px 8px; border-radius: 5px;
+  white-space: nowrap;
+}
+.fc-stack-pill-due     { background: rgba(124,106,247,.12); color: var(--accent2); border: 1px solid rgba(124,106,247,.2); }
+.fc-stack-pill-mastered{ background: rgba(212,168,67,.1); color: var(--gold2); border: 1px solid rgba(212,168,67,.15); }
+.fc-stack-pill-new     { background: rgba(62,207,170,.08); color: var(--teal); border: 1px solid rgba(62,207,170,.12); }
+.fc-stack-pill-all     { background: rgba(255,255,255,.05); color: var(--muted2); }
+
+.fc-topic-stack-bar-wrap { margin-bottom: 10px; }
+.fc-topic-stack-bar-track { height: 4px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+.fc-topic-stack-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--teal)); transition: width .5s ease; }
+
+.fc-topic-stack-actions { display: flex; gap: 8px; }
+.fc-stack-review-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: rgba(124,106,247,.12); border: 1px solid rgba(124,106,247,.22);
+  color: var(--accent2); border-radius: 10px; padding: 8px 14px;
+  font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
+  transition: background .2s, transform .1s;
+}
+.fc-stack-review-btn:hover { background: rgba(124,106,247,.22); }
+.fc-stack-review-btn:active { transform: scale(.97); }
+.fc-stack-review-btn.all-done {
+  background: rgba(62,207,170,.08); border-color: rgba(62,207,170,.2); color: var(--teal);
+}
+.fc-stack-review-btn.all-done:hover { background: rgba(62,207,170,.15); }
+
+/* Stack review mode overlay header */
+.fc-stack-review-header {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 12px 16px; margin-bottom: 16px;
+}
+.fc-stack-review-back {
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--muted2); border-radius: 10px; padding: 7px 12px;
+  font-family: inherit; font-size: 11px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all .2s;
+}
+.fc-stack-review-back:hover { color: var(--text); background: var(--bg3); }
+.fc-stack-review-info { flex: 1; }
+.fc-stack-review-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.fc-stack-review-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* Empty stacks */
+.fc-stacks-empty {
+  text-align: center; padding: 60px 24px; color: var(--muted); font-size: 13px; line-height: 1.8;
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+}
+.fc-stacks-empty i { font-size: 32px; opacity: .15; display: block; margin-bottom: 14px; }
+
+/* ══════════════════════════════════════════
    GAMIFICATION — XP / LEVEL / LEADERBOARD
 ══════════════════════════════════════════ */
 
@@ -4346,10 +4502,10 @@ button, a, input, [onclick] {
         <i class="fa-solid fa-magnifying-glass"></i>
         <input type="text" id="fc-search-input" placeholder="Question বা answer search করো…" oninput="fcLibRender()">
       </div>
-      <select class="fc-filter-select" id="fc-filter-cat" onchange="fcUpdateSubFilter(); fcLibRender()">
+      <select class="fc-filter-select" id="fc-filter-cat" onchange="fcUpdateSubFilter(); if(fcCurrentView==='stacks')fcStacksRender(); else fcLibRender()">
         <option value="">সব Category</option>
       </select>
-      <select class="fc-filter-select" id="fc-filter-sub" onchange="fcLibRender()">
+      <select class="fc-filter-select" id="fc-filter-sub" onchange="if(fcCurrentView==='stacks')fcStacksRender(); else fcLibRender()">
         <option value="">সব Subject</option>
       </select>
       <select class="fc-filter-select" id="fc-sort-by" onchange="fcLibRender()">
@@ -4363,6 +4519,9 @@ button, a, input, [onclick] {
         <button class="fc-vtoggle-btn active" id="fcvt-review" onclick="fcSwitchView('review')">
           <i class="fa-solid fa-clone"></i> Review
         </button>
+        <button class="fc-vtoggle-btn" id="fcvt-stacks" onclick="fcSwitchView('stacks')">
+          <i class="fa-solid fa-layer-group"></i> Stacks
+        </button>
         <button class="fc-vtoggle-btn" id="fcvt-library" onclick="fcSwitchView('library')">
           <i class="fa-solid fa-list"></i> Manage
         </button>
@@ -4374,6 +4533,11 @@ button, a, input, [onclick] {
       <div class="fc-section" id="fc-section" style="border:none;padding:0;background:transparent">
         <div id="fc-viewer-wrap"></div>
       </div>
+    </div>
+
+    <!-- Stacks area -->
+    <div id="fc-stacks-area" style="display:none">
+      <div id="fc-stacks-wrap"></div>
     </div>
 
     <!-- Library / Manage area -->
@@ -7087,11 +7251,330 @@ let fcCurrentView = 'review'; // 'review' | 'library'
 function fcSwitchView(v){
   fcCurrentView = v;
   document.getElementById('fc-review-area').style.display  = v==='review'  ? '' : 'none';
+  document.getElementById('fc-stacks-area').style.display  = v==='stacks'  ? '' : 'none';
   document.getElementById('fc-library-area').style.display = v==='library' ? '' : 'none';
   document.getElementById('fcvt-review').classList.toggle('active', v==='review');
+  document.getElementById('fcvt-stacks').classList.toggle('active', v==='stacks');
   document.getElementById('fcvt-library').classList.toggle('active', v==='library');
   if(v==='library') fcLibRender();
   if(v==='review')  fcRender();
+  if(v==='stacks')  fcStacksRender();
+}
+
+// ══════════════════════════════════════════════════
+//  FLASHCARD STACKS VIEW ENGINE
+// ══════════════════════════════════════════════════
+
+let fcStackSession = null; // null = showing stacks, or { cards, idx, topicKey, topicName, subj, cat }
+
+function fcStacksRender(){
+  const wrap = document.getElementById('fc-stacks-wrap');
+  if(!wrap) return;
+
+  // If in stack review session, show the review
+  if(fcStackSession){
+    fcStackRenderSession(wrap);
+    return;
+  }
+
+  // refresh filters dropdowns
+  fcInitFilters();
+
+  if(!fcCards.length){
+    wrap.innerHTML = `<div class="fc-stacks-empty"><i class="fa-solid fa-layer-group"></i>কোনো flashcard নেই।<br>Topic complete করার সময় বা "Add Card" থেকে card তৈরি করো।</div>`;
+    return;
+  }
+
+  const today = activeDate;
+
+  // Group: category → subject → topicName → cards
+  const groups = {};
+  fcCards.forEach(c => {
+    const cat   = c.category   || 'Uncategorized';
+    const sub   = c.subject    || 'General';
+    const topic = c.topicName  || sub;
+    if(!groups[cat]) groups[cat] = {};
+    if(!groups[cat][sub]) groups[cat][sub] = {};
+    if(!groups[cat][sub][topic]) groups[cat][sub][topic] = [];
+    groups[cat][sub][topic].push(c);
+  });
+
+  // Apply current filters from toolbar
+  const filterCat = ((document.getElementById('fc-filter-cat')||{}).value||'');
+  const filterSub = ((document.getElementById('fc-filter-sub')||{}).value||'');
+
+  let html = `<div class="fc-stacks-container">`;
+
+  // Iterate in cats order
+  const catOrder = [...cats, 'Uncategorized'];
+  catOrder.forEach(cat => {
+    if(!groups[cat]) return;
+    if(filterCat && cat !== filterCat) return;
+
+    const ci = cats.indexOf(cat);
+    const dotColor = ci>=0 ? catColors[ci] : '#6b7080';
+
+    // Count totals for category
+    let catTotal = 0, catDue = 0, catMastered = 0;
+    Object.values(groups[cat]).forEach(subjObj => {
+      Object.values(subjObj).forEach(cards => {
+        catTotal += cards.length;
+        catDue   += cards.filter(c => c.nextDue && c.nextDue <= today).length;
+        catMastered += cards.filter(c => c.reps >= 5 && c.interval >= 21).length;
+      });
+    });
+
+    html += `<div class="fc-stack-cat-group open">
+      <div class="fc-stack-cat-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="fc-stack-cat-dot" style="background:${dotColor}"></div>
+        <div class="fc-stack-cat-name" style="color:${dotColor}">${cat}</div>
+        <div class="fc-stack-cat-stats">
+          <span class="fc-lib-stat-pill fc-lib-stat-total">${catTotal} cards</span>
+          ${catDue?`<span class="fc-lib-stat-pill fc-lib-stat-due">${catDue} due</span>`:''}
+          ${catMastered?`<span class="fc-lib-stat-pill fc-lib-stat-mastered">${catMastered} mastered</span>`:''}
+        </div>
+        <i class="fa-solid fa-chevron-down fc-stack-cat-chevron"></i>
+      </div>
+      <div class="fc-stack-cat-body">`;
+
+    Object.entries(groups[cat]).forEach(([sub, topicsObj]) => {
+      if(filterSub && sub !== filterSub) return;
+
+      let subjTotal = 0, subjDue = 0;
+      Object.values(topicsObj).forEach(cards => {
+        subjTotal += cards.length;
+        subjDue   += cards.filter(c => c.nextDue && c.nextDue <= today).length;
+      });
+
+      html += `<div class="fc-stack-subj-group open">
+        <div class="fc-stack-subj-header" onclick="this.parentElement.classList.toggle('open')">
+          <div class="fc-stack-subj-name">
+            <i class="fa-solid fa-book" style="font-size:10px;opacity:.5"></i>${sub}
+            <span class="fc-lib-subj-count">${subjTotal}</span>
+            ${subjDue?`<span class="fc-lib-stat-pill fc-lib-stat-due" style="font-size:8px">${subjDue} due</span>`:''}
+          </div>
+          <i class="fa-solid fa-chevron-down fc-stack-subj-chevron"></i>
+        </div>
+        <div class="fc-stack-subj-body">`;
+
+      Object.entries(topicsObj).forEach(([topic, cards]) => {
+        const total    = cards.length;
+        const due      = cards.filter(c => c.nextDue && c.nextDue <= today).length;
+        const mastered = cards.filter(c => c.reps >= 5 && c.interval >= 21).length;
+        const newCards = cards.filter(c => !c.nextDue || c.reps === 0).length;
+        const mastPct  = total > 0 ? Math.round(mastered/total*100) : 0;
+        const topicKey = encodeURIComponent(cat + '||' + sub + '||' + topic);
+
+        let statusPills = '';
+        if(due)      statusPills += `<span class="fc-topic-stack-pill fc-stack-pill-due"><i class="fa-solid fa-clock" style="font-size:8px"></i> ${due} due</span>`;
+        if(mastered) statusPills += `<span class="fc-topic-stack-pill fc-stack-pill-mastered">⭐ ${mastered} mastered</span>`;
+        if(newCards) statusPills += `<span class="fc-topic-stack-pill fc-stack-pill-new">✦ ${newCards} new</span>`;
+
+        const btnLabel = due > 0
+          ? `<i class="fa-solid fa-play"></i> ${due}টি Review করো`
+          : `<i class="fa-solid fa-check"></i> সব done`;
+        const btnClass = due > 0 ? '' : 'all-done';
+
+        html += `<div class="fc-topic-stack" onclick="fcStackStartReview('${topicKey}')">
+          <div class="fc-topic-stack-top">
+            <div class="fc-topic-stack-name">${topic}</div>
+            <div class="fc-topic-stack-count"><i class="fa-solid fa-layer-group"></i> ${total}</div>
+          </div>
+          <div class="fc-topic-stack-meta">${statusPills || '<span class="fc-topic-stack-pill fc-stack-pill-all">সব cards</span>'}</div>
+          <div class="fc-topic-stack-bar-wrap">
+            <div class="fc-topic-stack-bar-track">
+              <div class="fc-topic-stack-bar-fill" style="width:${mastPct}%"></div>
+            </div>
+          </div>
+          <div class="fc-topic-stack-actions">
+            <button class="fc-stack-review-btn ${btnClass}" onclick="event.stopPropagation();fcStackStartReview('${topicKey}')">
+              ${btnLabel}
+            </button>
+            <button class="fc-stack-review-btn" style="flex:none;padding:8px 12px;background:rgba(77,184,240,.08);border-color:rgba(77,184,240,.18);color:var(--sky)" onclick="event.stopPropagation();fcStackStartReview('${topicKey}',true)" title="সব cards review করো">
+              <i class="fa-solid fa-layer-group"></i> All
+            </button>
+          </div>
+        </div>`;
+      });
+
+      html += `</div></div>`; // subj-body, subj-group
+    });
+
+    html += `</div></div>`; // cat-body, cat-group
+  });
+
+  html += `</div>`;
+  wrap.innerHTML = html;
+}
+
+function fcStackStartReview(topicKey, showAll = false){
+  const decoded = decodeURIComponent(topicKey);
+  const [cat, sub, topic] = decoded.split('||');
+  const today = activeDate;
+
+  let cards = fcCards.filter(c => {
+    return (c.category||'Uncategorized') === cat &&
+           (c.subject||'General') === sub &&
+           (c.topicName||c.subject||'General') === topic;
+  });
+
+  if(!showAll){
+    // Only due cards
+    const due = cards.filter(c => c.nextDue && c.nextDue <= today);
+    if(due.length > 0) cards = due;
+    // else show all if no due (user clicked "All" or everything done)
+  }
+
+  if(!cards.length){
+    // Toast
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<div class="toast-icon" style="background:rgba(62,207,170,.15);color:var(--teal)"><i class="fa-solid fa-check"></i></div><div><div class="toast-title">সব done!</div><div class="toast-msg">এই topic-এর আজ review করার কিছু নেই।</div></div>`;
+    c.appendChild(t);
+    setTimeout(()=>{t.style.transition='all .4s';t.style.opacity='0';t.style.transform='translateY(-8px)';setTimeout(()=>t.remove(),400);},2800);
+    return;
+  }
+
+  // Sort: due first
+  cards.sort((a,b)=>{
+    const da = a.nextDue||'9999'; const db = b.nextDue||'9999';
+    return da.localeCompare(db);
+  });
+
+  fcStackSession = { cards: [...cards], idx: 0, topicKey, topicName: topic, sub, cat };
+  fcStackRenderSession(document.getElementById('fc-stacks-wrap'));
+}
+
+function fcStackRenderSession(wrap){
+  if(!fcStackSession){ fcStacksRender(); return; }
+  const { cards, idx, topicName, sub, cat } = fcStackSession;
+  const total = cards.length;
+  const done  = idx;
+  const pct   = total > 0 ? Math.round(done/total*100) : 0;
+
+  if(idx >= total){
+    // Session done
+    const doneHtml = `
+      <div class="fc-stack-review-header">
+        <button class="fc-stack-review-back" onclick="fcStackEndSession()"><i class="fa-solid fa-arrow-left"></i> Stacks</button>
+        <div class="fc-stack-review-info">
+          <div class="fc-stack-review-title">${topicName}</div>
+          <div class="fc-stack-review-sub">${sub} · ${cat}</div>
+        </div>
+      </div>
+      <div class="fc-section" style="border:none;padding:0;background:transparent">
+        <div class="fc-empty" style="padding:40px 24px">
+          <i class="fa-solid fa-circle-check" style="color:var(--teal);opacity:1;font-size:36px"></i>
+          <div style="color:var(--teal);font-weight:700;font-size:14px;margin-bottom:6px;margin-top:8px">Stack Review শেষ! 🎉</div>
+          <div>${total}টি card review করা হয়েছে।</div>
+          <button class="fc-stack-review-back" style="margin:16px auto 0;display:inline-flex" onclick="fcStackEndSession()"><i class="fa-solid fa-arrow-left"></i> Stacks-এ ফিরে যাও</button>
+        </div>
+      </div>`;
+    wrap.innerHTML = doneHtml;
+    return;
+  }
+
+  const card = cards[idx];
+
+  wrap.innerHTML = `
+    <div class="fc-stack-review-header">
+      <button class="fc-stack-review-back" onclick="fcStackEndSession()"><i class="fa-solid fa-arrow-left"></i> Stacks</button>
+      <div class="fc-stack-review-info">
+        <div class="fc-stack-review-title">${topicName}</div>
+        <div class="fc-stack-review-sub">${sub} · ${cat}</div>
+      </div>
+      <span class="fc-topic-stack-count"><i class="fa-solid fa-layer-group"></i> ${done}/${total}</span>
+    </div>
+    <div class="fc-section" style="border:none;padding:0;background:transparent">
+      <div id="fc-stack-card-area"></div>
+    </div>`;
+
+  // Render the card into fc-stack-card-area using existing card viewer logic
+  const area = document.getElementById('fc-stack-card-area');
+  if(area) fcStackRenderCard(area, card, done, total, pct);
+}
+
+function fcStackRenderCard(container, card, done, total, pct){
+  container.innerHTML = `
+  <div class="fc-viewer">
+    <div class="fc-progress-row">
+      <span>${done}/${total}</span>
+      <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-stack-prog-fill" style="width:${pct}%"></div></div>
+      <span style="color:var(--accent2)">${pct}%</span>
+    </div>
+
+    <div class="fc-card-wrap" onclick="fcStackFlip()">
+      <div class="fc-card" id="fc-stack-card-el">
+        <div class="fc-card-face fc-card-front">
+          <div class="fc-card-meta">${card.subject||''} · ${card.category||''}</div>
+          <span class="fc-face-badge q">Question</span>
+          <div class="fc-card-q">${card.q}</div>
+          <div class="fc-hint"><i class="fa-solid fa-hand-pointer"></i> ক্লিক করে উত্তর দেখো</div>
+        </div>
+        <div class="fc-card-face fc-card-back">
+          <div class="fc-card-meta">${card.topicName||''}</div>
+          <span class="fc-face-badge a">Answer</span>
+          <div class="fc-card-a">${card.a}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fc-rating-row" id="fc-stack-rating-row">
+      <button class="fc-rate-btn fc-rate-again" onclick="fcStackRate(1)"><span>😩</span>Again<small style="font-size:9px;opacity:.7">&lt;1d</small></button>
+      <button class="fc-rate-btn fc-rate-hard"  onclick="fcStackRate(2)"><span>😓</span>Hard<small style="font-size:9px;opacity:.7">~1d</small></button>
+      <button class="fc-rate-btn fc-rate-good"  onclick="fcStackRate(3)"><span>😊</span>Good<small style="font-size:9px;opacity:.7">~${Math.max(1,Math.round((card.interval||1)*2.5))}d</small></button>
+      <button class="fc-rate-btn fc-rate-easy"  onclick="fcStackRate(4)"><span>😄</span>Easy<small style="font-size:9px;opacity:.7">~${Math.max(3,Math.round((card.interval||1)*3.5))}d</small></button>
+    </div>
+
+    <div class="fc-nav-row">
+      <button class="fc-nav-btn" onclick="fcStackSkip()" title="এই card skip করো">
+        <i class="fa-solid fa-forward"></i> Skip
+      </button>
+    </div>
+  </div>`;
+
+  // hide rating row initially
+  document.getElementById('fc-stack-rating-row').style.display = 'none';
+}
+
+let fcStackFlipped = false;
+function fcStackFlip(){
+  fcStackFlipped = true;
+  const el = document.getElementById('fc-stack-card-el');
+  const rr = document.getElementById('fc-stack-rating-row');
+  if(el) el.classList.add('flipped');
+  if(rr) rr.style.display = '';
+}
+
+function fcStackRate(rating){
+  if(!fcStackSession) return;
+  const card = fcStackSession.cards[fcStackSession.idx];
+  const updated = fcSRS(card, rating);
+  // Update in fcCards
+  const idx2 = fcCards.findIndex(c=>c.id===card.id);
+  if(idx2>=0) fcCards[idx2] = updated;
+  fcSave(fcCards);
+  gmEarnXP('flash', GM_XP.flashcardReview, 'Flashcard reviewed');
+  aimPersistToday();
+  fcUpdateNavBadge();
+
+  fcStackSession.idx++;
+  fcStackFlipped = false;
+  fcStackRenderSession(document.getElementById('fc-stacks-wrap'));
+}
+
+function fcStackSkip(){
+  if(!fcStackSession) return;
+  fcStackSession.idx++;
+  fcStackFlipped = false;
+  fcStackRenderSession(document.getElementById('fc-stacks-wrap'));
+}
+
+function fcStackEndSession(){
+  fcStackSession = null;
+  fcStackFlipped = false;
+  fcStacksRender();
 }
 
 // Populate category dropdown
