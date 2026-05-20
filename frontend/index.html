@@ -3862,6 +3862,79 @@ body::before {
 .wg-banner-text { flex:1; }
 .wg-banner-title { font-size:13px; font-weight:700; color:var(--teal); margin-bottom:2px; }
 .wg-banner-sub { font-size:11px; color:var(--muted); }
+
+/* ═══════════════════════════════════════════
+   FOCUS TIME LOG — STYLES
+═══════════════════════════════════════════ */
+.flt-tab {
+  background:var(--bg2); border:1px solid var(--border);
+  color:var(--muted2); border-radius:8px; padding:6px 12px;
+  font-size:10px; font-weight:600; cursor:pointer; font-family:inherit;
+  display:flex; align-items:center; gap:5px;
+  transition:all .2s;
+}
+.flt-tab.active {
+  background:rgba(91,138,245,.12); border-color:rgba(91,138,245,.28); color:#5b8af5;
+}
+
+/* Lifetime list */
+.fl-lifetime-summary {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;
+}
+.fl-ls-card {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:12px; padding:10px 12px; text-align:center;
+}
+.fl-ls-val {
+  font-family:'Instrument Serif',serif;
+  font-size:22px; color:var(--accent2); line-height:1;
+}
+.fl-ls-lbl { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:3px; }
+
+.fl-lifetime-list { display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; }
+.fl-topic-row {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:10px; padding:10px 12px;
+  display:flex; align-items:center; gap:10px;
+}
+.fl-topic-rank {
+  font-size:9px; font-family:monospace; color:var(--muted);
+  background:var(--bg3); padding:2px 6px; border-radius:4px; flex-shrink:0;
+}
+.fl-topic-info { flex:1; min-width:0; }
+.fl-topic-name { font-size:12px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fl-topic-sub { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+.fl-topic-time {
+  font-size:13px; font-weight:700; color:var(--sky);
+  font-family:'Instrument Serif',serif; flex-shrink:0;
+}
+.fl-topic-bar-wrap { margin-top:5px; }
+.fl-topic-bar { height:3px; background:var(--bg3); border-radius:99px; overflow:hidden; }
+.fl-topic-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#5b8af5,var(--teal)); transition:width .5s ease; }
+.fl-topic-sessions { font-size:9px; color:var(--muted); margin-top:3px; }
+
+/* Category breakdown */
+.fl-cat-list { display:flex; flex-direction:column; gap:8px; max-height:380px; overflow-y:auto; }
+.fl-cat-row {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:12px; padding:12px 14px;
+}
+.fl-cat-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.fl-cat-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.fl-cat-name { font-size:11px; font-weight:700; flex:1; }
+.fl-cat-time { font-size:13px; font-weight:700; font-family:'Instrument Serif',serif; }
+.fl-cat-bar { height:4px; background:var(--bg3); border-radius:99px; overflow:hidden; margin-bottom:6px; }
+.fl-cat-bar-fill { height:100%; border-radius:99px; transition:width .5s ease; }
+.fl-sub-list { display:flex; flex-direction:column; gap:4px; }
+.fl-sub-row {
+  display:flex; align-items:center; gap:8px;
+  font-size:10px; color:var(--muted2); padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,.03);
+}
+.fl-sub-row:last-child { border-bottom:none; }
+.fl-sub-name { flex:1; }
+.fl-sub-time { font-weight:600; font-size:10px; white-space:nowrap; }
+.fl-sub-sessions { color:var(--muted); font-size:9px; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -4456,16 +4529,46 @@ body::before {
 
       <!-- Right: History -->
       <div class="pomo-history-card">
-        <h2><i class="fa-solid fa-chart-simple"></i> Time Spent Per Topic</h2>
-        <div class="pomo-topic-cards" id="pomo-topic-cards">
-          <div class="pomo-empty-history">
-            <i class="fa-regular fa-clock"></i>
-            <p>Complete a focus session to start tracking time per topic.</p>
+        <h2><i class="fa-solid fa-chart-simple"></i> Focus Time Analytics</h2>
+
+        <!-- View tabs -->
+        <div style="display:flex;gap:6px;margin-bottom:14px">
+          <button class="flt-tab active" id="flt-today" onclick="flSwitchTab('today')"><i class="fa-solid fa-sun"></i> আজকে</button>
+          <button class="flt-tab" id="flt-lifetime" onclick="flSwitchTab('lifetime')"><i class="fa-solid fa-infinity"></i> Lifetime</button>
+          <button class="flt-tab" id="flt-subject" onclick="flSwitchTab('subject')"><i class="fa-solid fa-layer-group"></i> Category</button>
+        </div>
+
+        <!-- Today view -->
+        <div id="fl-view-today">
+          <div class="pomo-topic-cards" id="pomo-topic-cards">
+            <div class="pomo-empty-history">
+              <i class="fa-regular fa-clock"></i>
+              <p>Complete a focus session to start tracking time per topic.</p>
+            </div>
+          </div>
+          <div class="pomo-history-footer">
+            <div class="pomo-hf-label">আজকের মোট Focus Time</div>
+            <div class="pomo-hf-val" id="pomo-total-focus-time">0:00</div>
           </div>
         </div>
-        <div class="pomo-history-footer">
-          <div class="pomo-hf-label">Total Focus Time Today</div>
-          <div class="pomo-hf-val" id="pomo-total-focus-time">0:00</div>
+
+        <!-- Lifetime view -->
+        <div id="fl-view-lifetime" style="display:none">
+          <div class="fl-lifetime-summary" id="fl-lifetime-summary"></div>
+          <div class="fl-lifetime-list" id="fl-lifetime-list"></div>
+          <div class="pomo-history-footer" style="margin-top:10px">
+            <div class="pomo-hf-label">Lifetime মোট Focus Time</div>
+            <div class="pomo-hf-val" id="fl-lifetime-total">0:00</div>
+          </div>
+        </div>
+
+        <!-- Category breakdown view -->
+        <div id="fl-view-subject" style="display:none">
+          <div class="fl-cat-list" id="fl-cat-list"></div>
+          <div class="pomo-history-footer" style="margin-top:10px">
+            <div class="pomo-hf-label">সব Category মিলিয়ে</div>
+            <div class="pomo-hf-val" id="fl-cat-total">0:00</div>
+          </div>
         </div>
       </div>
 
@@ -5025,14 +5128,15 @@ window.onload=async function(){
   } catch(e){ dbRoutine=defaultRoutine; dbTopics={}; }
   // Load KV data from server
   try{
-    const [pd, pt, sk, fc, pm, gm, wg] = await Promise.all([
+    const [pd, pt, sk, fc, pm, gm, wg, fl] = await Promise.all([
       kvGet(POMO_PM_KEY),
       kvGet(POMO_TOPICS_KEY),
       kvGet(SK_KEY),
       kvGet(FC_KEY),
       kvGet(PM_STORAGE_KEY),
       kvGet(GM_KEY),
-      kvGet(WG_KEY)
+      kvGet(WG_KEY),
+      kvGet(FL_KEY)
     ]);
     if(pd){
       if(pd.date !== getLocalDateStr())
@@ -5045,6 +5149,7 @@ window.onload=async function(){
     if(pm) pmCache = pm;
     if(gm) gmData = gm;
     if(wg && Array.isArray(wg)) wgGoals = wg;
+    if(fl) flLog = fl;
     pomoTimeLeft  = pomoData.focusMinutes * 60;
     pomoTotalSecs = pomoData.focusMinutes * 60;
     pomoSyncTopics();
@@ -5064,7 +5169,7 @@ function switchTab(id){
   if(id==='daily') renderDaily();
   if(id==='weeklygoals') wgRender();
   if(id==='flashcards'){ fcInitFilters(); if(fcCurrentView==='library') fcLibRender(); else fcRender(); }
-  if(id==='pomodoro'){ pomoSyncTopics(); pomoRenderTopicSelect(); pomoRenderHistory(); pomoRenderSessionChips(); }
+  if(id==='pomodoro'){ pomoSyncTopics(); pomoRenderTopicSelect(); pomoRenderHistory(); pomoRenderSessionChips(); if(_flCurrentTab!=='today') { if(_flCurrentTab==='lifetime') flRenderLifetime(); else if(_flCurrentTab==='subject') flRenderCategory(); } }
 }
 
 // ── TAB 1: ROUTINE ──
@@ -6061,6 +6166,9 @@ function pomoLogSession(topicName, durationSecs){
   tp.sessions.push({secs:durationSecs, time:timeStr, date:pomoGetTodayStr()});
   pomoSaveTopics(pomoTopicList);
 
+  // ── Lifetime Focus Log ──
+  flLogSession(topicName, durationSecs, timeStr);
+
   pomoRenderHistory();
   pomoRenderSessionChips();
 }
@@ -6070,6 +6178,169 @@ function pomoFmtTime(secs){
   if(h>0) return `${h}h ${m}m`;
   if(m>0) return `${m}m${s>0?' '+s+'s':''}`.trim();
   return `${s}s`;
+}
+
+// ══════════════════════════════════════════════════
+//  FOCUS TIME LOG (LIFETIME) ENGINE
+// ══════════════════════════════════════════════════
+const FL_KEY = 'focus_log_lifetime_v1';
+let flLog = null; // { topics: { key: {name,subject,category,totalSecs,sessionCount,byDate} } }
+
+async function flLoad(){
+  const d = await kvGet(FL_KEY);
+  flLog = d || { topics:{} };
+}
+async function flSave(){
+  await kvPut(FL_KEY, flLog);
+}
+
+function flGetTopicKey(name, subject){ return (subject||'Custom') + '::' + name; }
+
+function flLogSession(topicName, durationSecs, timeStr){
+  if(!flLog) flLog = { topics:{} };
+  // Find category & subject from pomoTopicList or dbTopics
+  let subject = 'Custom', category = 'Custom';
+  const tp = pomoTopicList.find(t=>t.name===topicName);
+  if(tp){ subject = tp.subject||'Custom'; }
+  // Try to get category from dbTopics
+  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+    if(t.topicName===topicName){ subject=t.subject||subject; category=t.category||category; }
+  }));
+
+  const key = flGetTopicKey(topicName, subject);
+  if(!flLog.topics[key]){
+    flLog.topics[key] = { name:topicName, subject, category, totalSecs:0, sessionCount:0, byDate:{} };
+  }
+  const entry = flLog.topics[key];
+  entry.totalSecs += durationSecs;
+  entry.sessionCount += 1;
+  entry.subject = subject;
+  entry.category = category;
+  const today = getLocalDateStr();
+  entry.byDate[today] = (entry.byDate[today]||0) + durationSecs;
+
+  flSave();
+}
+
+let _flCurrentTab = 'today';
+function flSwitchTab(tab){
+  _flCurrentTab = tab;
+  ['today','lifetime','subject'].forEach(t=>{
+    document.getElementById('flt-'+t).classList.toggle('active', t===tab);
+    document.getElementById('fl-view-'+t).style.display = t===tab?'':'none';
+  });
+  if(tab==='lifetime') flRenderLifetime();
+  if(tab==='subject') flRenderCategory();
+}
+
+function flRenderLifetime(){
+  if(!flLog) return;
+  const topics = Object.values(flLog.topics).sort((a,b)=>b.totalSecs-a.totalSecs);
+  const totalSecs = topics.reduce((s,t)=>s+t.totalSecs,0);
+  const totalSessions = topics.reduce((s,t)=>s+t.sessionCount,0);
+  const uniqueDays = new Set(topics.flatMap(t=>Object.keys(t.byDate||{}))).size;
+
+  // Summary cards
+  document.getElementById('fl-lifetime-summary').innerHTML = `
+    <div class="fl-ls-card">
+      <div class="fl-ls-val" style="color:var(--sky)">${pomoFmtTime(totalSecs)}</div>
+      <div class="fl-ls-lbl">মোট Focus Time</div>
+    </div>
+    <div class="fl-ls-card">
+      <div class="fl-ls-val" style="color:var(--accent2)">${totalSessions}</div>
+      <div class="fl-ls-lbl">মোট Sessions</div>
+    </div>
+    <div class="fl-ls-card">
+      <div class="fl-ls-val" style="color:var(--teal)">${topics.length}</div>
+      <div class="fl-ls-lbl">Unique Topics</div>
+    </div>
+    <div class="fl-ls-card">
+      <div class="fl-ls-val" style="color:var(--gold2)">${uniqueDays}</div>
+      <div class="fl-ls-lbl">Active Days</div>
+    </div>`;
+
+  document.getElementById('fl-lifetime-total').innerText = pomoFmtTime(totalSecs);
+
+  // Topic list
+  const list = document.getElementById('fl-lifetime-list');
+  if(!topics.length){
+    list.innerHTML = `<div class="pomo-empty-history"><i class="fa-regular fa-clock"></i><p>এখনো কোনো session নেই।</p></div>`;
+    return;
+  }
+  const maxSecs = topics[0].totalSecs;
+  list.innerHTML = topics.map((t,i)=>{
+    const pct = maxSecs>0?Math.round(t.totalSecs/maxSecs*100):0;
+    const ci = cats.indexOf(t.category);
+    const color = ci>=0 ? catColors[ci] : '#5b8af5';
+    return `<div class="fl-topic-row">
+      <span class="fl-topic-rank">#${i+1}</span>
+      <div class="fl-topic-info">
+        <div class="fl-topic-name">${t.name}</div>
+        <div class="fl-topic-sub">${t.subject} ${t.category&&t.category!=='Custom'?'· '+t.category:''}</div>
+        <div class="fl-topic-bar-wrap">
+          <div class="fl-topic-bar"><div class="fl-topic-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}88)"></div></div>
+        </div>
+        <div class="fl-topic-sessions">${t.sessionCount} sessions · ${Object.keys(t.byDate||{}).length} দিন</div>
+      </div>
+      <div class="fl-topic-time">${pomoFmtTime(t.totalSecs)}</div>
+    </div>`;
+  }).join('');
+}
+
+function flRenderCategory(){
+  if(!flLog) return;
+  const topics = Object.values(flLog.topics);
+  const totalSecs = topics.reduce((s,t)=>s+t.totalSecs,0);
+  document.getElementById('fl-cat-total').innerText = pomoFmtTime(totalSecs);
+
+  // Group by category → subject
+  const grouped = {};
+  topics.forEach(t=>{
+    const cat = t.category||'Custom';
+    const sub = t.subject||'Custom';
+    if(!grouped[cat]) grouped[cat] = {};
+    if(!grouped[cat][sub]) grouped[cat][sub] = { totalSecs:0, sessionCount:0, topics:[] };
+    grouped[cat][sub].totalSecs += t.totalSecs;
+    grouped[cat][sub].sessionCount += t.sessionCount;
+    grouped[cat][sub].topics.push(t);
+  });
+
+  const catOrder = [...cats, 'Custom'];
+  const maxCatSecs = Math.max(...Object.values(grouped).map(subs=>Object.values(subs).reduce((s,v)=>s+v.totalSecs,0)));
+
+  const list = document.getElementById('fl-cat-list');
+  if(!topics.length){
+    list.innerHTML = `<div class="pomo-empty-history"><i class="fa-regular fa-clock"></i><p>এখনো কোনো session নেই।</p></div>`;
+    return;
+  }
+
+  list.innerHTML = catOrder.map(cat=>{
+    if(!grouped[cat]) return '';
+    const ci = cats.indexOf(cat);
+    const color = ci>=0 ? catColors[ci] : '#6b7080';
+    const subs = grouped[cat];
+    const catTotal = Object.values(subs).reduce((s,v)=>s+v.totalSecs,0);
+    const catSessions = Object.values(subs).reduce((s,v)=>s+v.sessionCount,0);
+    const pct = maxCatSecs>0?Math.round(catTotal/maxCatSecs*100):0;
+
+    const subRows = Object.entries(subs).sort((a,b)=>b[1].totalSecs-a[1].totalSecs).map(([sub,sv])=>`
+      <div class="fl-sub-row">
+        <span class="fl-sub-name">${sub}</span>
+        <span class="fl-sub-sessions">${sv.sessionCount} sessions</span>
+        <span class="fl-sub-time" style="color:${color}">${pomoFmtTime(sv.totalSecs)}</span>
+      </div>`).join('');
+
+    return `<div class="fl-cat-row">
+      <div class="fl-cat-header">
+        <div class="fl-cat-dot" style="background:${color}"></div>
+        <div class="fl-cat-name" style="color:${color}">${cat}</div>
+        <span style="font-size:9px;color:var(--muted)">${catSessions} sessions</span>
+        <div class="fl-cat-time" style="color:${color}">${pomoFmtTime(catTotal)}</div>
+      </div>
+      <div class="fl-cat-bar"><div class="fl-cat-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}88)"></div></div>
+      <div class="fl-sub-list">${subRows}</div>
+    </div>`;
+  }).join('');
 }
 
 function pomoRenderHistory(){
