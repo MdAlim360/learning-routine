@@ -3523,6 +3523,345 @@ body::before {
 }
 .lvlup-ok-btn:hover { opacity: 0.9; }
 .lvlup-ok-btn:active { transform: scale(0.97); }
+
+/* ═══════════════════════════════════════════
+   WEEKLY GOALS ENGINE — STYLES
+═══════════════════════════════════════════ */
+.wg-header { margin-bottom: 32px; }
+.wg-header h2 { font-family:'Instrument Serif',serif; font-size:28px; font-weight:400; }
+.wg-header p { font-size:12px; color:var(--muted); margin-top:4px; }
+
+.wg-top-row {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:12px; margin-bottom:28px;
+}
+.wg-week-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(212,168,67,0.1); border:1px solid rgba(212,168,67,0.22);
+  border-radius:999px; padding:7px 16px;
+  font-size:11px; font-weight:700; color:var(--gold2);
+  letter-spacing:0.08em;
+}
+.wg-add-goal-btn {
+  display:flex; align-items:center; gap:7px;
+  background:linear-gradient(135deg,var(--gold),#b8860b);
+  color:#000; border:none; border-radius:12px;
+  padding:11px 20px; font-family:inherit; font-size:12px; font-weight:700;
+  cursor:pointer; transition:opacity .2s, transform .1s;
+  box-shadow:0 4px 18px rgba(212,168,67,0.3);
+}
+.wg-add-goal-btn:hover { opacity:.9; }
+.wg-add-goal-btn:active { transform:scale(.98); }
+
+/* Summary cards row */
+.wg-summary-row {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+  margin-bottom:28px;
+}
+@media(max-width:800px){ .wg-summary-row { grid-template-columns:repeat(2,1fr); } }
+.wg-sum-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:16px;
+  display:flex; flex-direction:column; gap:4px;
+}
+.wg-sum-icon { font-size:20px; margin-bottom:4px; }
+.wg-sum-val {
+  font-family:'Instrument Serif',serif;
+  font-size:28px; line-height:1; font-weight:400;
+}
+.wg-sum-lbl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; }
+
+/* Big goal ring cards */
+.wg-goals-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+  gap:16px; margin-bottom:28px;
+}
+.wg-goal-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:20px; padding:20px;
+  position:relative; overflow:hidden;
+  transition:border-color .2s, box-shadow .2s;
+}
+.wg-goal-card.wg-done-card {
+  border-color:rgba(62,207,170,.3);
+  background:linear-gradient(160deg, rgba(62,207,170,.04) 0%, var(--card) 100%);
+  box-shadow:0 4px 24px rgba(62,207,170,.08);
+}
+.wg-goal-card::before {
+  content:''; position:absolute; top:0; left:0; right:0;
+  height:2px; border-radius:20px 20px 0 0;
+}
+.wg-goal-card.cat-0::before { background:linear-gradient(90deg,#a695ff,#7c6af7); }
+.wg-goal-card.cat-1::before { background:linear-gradient(90deg,#f08ca8,#e05a7a); }
+.wg-goal-card.cat-2::before { background:linear-gradient(90deg,#f5c869,#d4a843); }
+.wg-goal-card.cat-3::before { background:linear-gradient(90deg,#3ecfaa,#2aa88c); }
+.wg-goal-card.cat-4::before { background:linear-gradient(90deg,#4db8f0,#2a8fcf); }
+.wg-goal-card.cat-5::before { background:linear-gradient(90deg,#f0b464,#d48a30); }
+
+.wg-card-top {
+  display:flex; align-items:flex-start; gap:14px; margin-bottom:16px;
+}
+.wg-card-ring-wrap {
+  position:relative; width:64px; height:64px; flex-shrink:0;
+}
+.wg-ring-svg { width:64px; height:64px; transform:rotate(-90deg); }
+.wg-ring-bg { fill:none; stroke:rgba(255,255,255,.06); stroke-width:6; }
+.wg-ring-fill { fill:none; stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1); }
+.wg-ring-center {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:800; font-family:'Instrument Serif',serif;
+}
+.wg-card-info { flex:1; min-width:0; }
+.wg-card-cat-badge {
+  font-size:9px; text-transform:uppercase; letter-spacing:.12em; font-weight:700;
+  padding:2px 8px; border-radius:5px; margin-bottom:6px; display:inline-block;
+}
+.wg-card-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:3px; line-height:1.4; }
+.wg-card-subtitle { font-size:11px; color:var(--muted); }
+.wg-card-actions {
+  display:flex; gap:6px; margin-left:auto; flex-shrink:0; align-items:flex-start;
+}
+.wg-edit-btn {
+  background:var(--bg2); border:1px solid var(--border); color:var(--muted);
+  border-radius:8px; padding:5px 8px; font-size:10px; cursor:pointer;
+  transition:color .2s; font-family:inherit;
+}
+.wg-edit-btn:hover { color:var(--text); }
+.wg-del-btn {
+  background:none; border:none; color:rgba(255,255,255,.12); cursor:pointer;
+  padding:4px; font-size:11px; border-radius:6px; transition:color .2s;
+}
+.wg-del-btn:hover { color:var(--rose); }
+
+/* Progress bar in card */
+.wg-card-bar-wrap { margin-bottom:12px; }
+.wg-card-bar-header {
+  display:flex; justify-content:space-between; margin-bottom:5px;
+  font-size:10px; color:var(--muted);
+}
+.wg-card-bar-track {
+  height:6px; background:var(--bg3); border-radius:99px; overflow:hidden;
+}
+.wg-card-bar-fill {
+  height:100%; border-radius:99px;
+  transition:width .6s cubic-bezier(.4,0,.2,1);
+}
+
+/* Weekly mini-weeks row */
+.wg-weeks-row {
+  display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;
+}
+.wg-week-chip {
+  flex:1; min-width:52px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:10px; padding:8px 6px; text-align:center; position:relative;
+  transition:border-color .2s, background .2s;
+}
+.wg-week-chip.wg-chip-done {
+  background:rgba(62,207,170,.08); border-color:rgba(62,207,170,.25);
+}
+.wg-week-chip.wg-chip-current {
+  border-color:var(--accent2); box-shadow:0 0 0 1px rgba(124,106,247,.2);
+}
+.wg-chip-label { font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+.wg-chip-val { font-size:12px; font-weight:700; margin-top:2px; }
+.wg-chip-bar { height:3px; background:var(--bg3); border-radius:99px; overflow:hidden; margin-top:4px; }
+.wg-chip-fill { height:100%; border-radius:99px; transition:width .4s ease; }
+
+/* Done badge on card */
+.wg-done-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  background:rgba(62,207,170,.12); border:1px solid rgba(62,207,170,.25);
+  color:var(--teal); border-radius:99px; padding:4px 12px;
+  font-size:10px; font-weight:700;
+}
+
+/* Topics completed list inside card */
+.wg-topic-chips {
+  display:flex; flex-wrap:wrap; gap:5px; margin-top:10px;
+}
+.wg-topic-chip {
+  font-size:10px; padding:3px 9px; border-radius:6px;
+  background:var(--bg2); border:1px solid var(--border); color:var(--muted2);
+  display:inline-flex; align-items:center; gap:4px;
+}
+.wg-topic-chip.done-chip { background:rgba(62,207,170,.07); border-color:rgba(62,207,170,.18); color:var(--teal); }
+
+/* Empty state */
+.wg-empty {
+  text-align:center; padding:52px 24px;
+  color:var(--muted); font-size:13px; line-height:1.8;
+}
+.wg-empty i { font-size:36px; opacity:.15; display:block; margin-bottom:16px; }
+.wg-empty-btn {
+  margin-top:18px; display:inline-flex; align-items:center; gap:8px;
+  background:rgba(212,168,67,.12); border:1px solid rgba(212,168,67,.25);
+  color:var(--gold2); border-radius:12px; padding:10px 20px;
+  font-family:inherit; font-size:12px; font-weight:600; cursor:pointer;
+  transition:background .2s;
+}
+.wg-empty-btn:hover { background:rgba(212,168,67,.2); }
+
+/* ── ADD / EDIT GOAL MODAL ── */
+.wg-modal-overlay {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(12px);
+  z-index:10001;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity .3s;
+}
+.wg-modal-overlay.visible { opacity:1; pointer-events:all; }
+.wg-modal-card {
+  background:var(--card);
+  border:1px solid rgba(212,168,67,.25);
+  border-radius:24px;
+  max-width:520px; width:92%; max-height:90vh; overflow-y:auto;
+  position:relative;
+  box-shadow:0 0 60px rgba(212,168,67,.1), 0 24px 60px rgba(0,0,0,.55);
+  transform:scale(.94) translateY(14px);
+  transition:transform .35s cubic-bezier(.34,1.2,.64,1);
+}
+.wg-modal-overlay.visible .wg-modal-card { transform:scale(1) translateY(0); }
+.wg-modal-topbar {
+  height:2px;
+  background:linear-gradient(90deg,var(--gold),var(--accent2),var(--teal));
+  border-radius:24px 24px 0 0;
+}
+.wg-modal-body { padding:28px 24px 24px; }
+.wg-modal-title {
+  font-family:'Instrument Serif',serif; font-size:20px; font-weight:400;
+  margin-bottom:20px;
+}
+.wg-form-group { margin-bottom:14px; }
+.wg-form-label {
+  display:block; font-size:10px; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--muted); font-weight:600; margin-bottom:6px;
+}
+.wg-form-input, .wg-form-select {
+  width:100%; background:var(--bg); border:1px solid var(--border);
+  border-radius:10px; padding:10px 12px; color:var(--text);
+  font-family:inherit; font-size:12px; outline:none;
+  transition:border-color .2s;
+}
+.wg-form-input:focus, .wg-form-select:focus { border-color:rgba(212,168,67,.4); }
+.wg-form-select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7080' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; background-size:16px; padding-right:32px; -webkit-appearance:none; }
+.wg-form-select option { background:#1a1d2e; }
+.wg-form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* Target chips for quick-select */
+.wg-target-chips { display:flex; gap:7px; flex-wrap:wrap; margin-top:8px; }
+.wg-target-chip {
+  background:var(--bg2); border:1px solid var(--border);
+  color:var(--muted2); border-radius:8px; padding:6px 12px;
+  font-size:11px; font-weight:600; cursor:pointer; font-family:inherit;
+  transition:all .2s;
+}
+.wg-target-chip:hover { border-color:var(--accent2); color:var(--accent2); }
+.wg-target-chip.selected {
+  background:rgba(124,106,247,.12); border-color:rgba(124,106,247,.3); color:var(--accent2);
+}
+
+/* Weeks planner in modal */
+.wg-weeks-planner { margin-top:14px; }
+.wg-weeks-planner-label {
+  font-size:10px; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--muted); font-weight:600; margin-bottom:8px;
+}
+.wg-planner-grid { display:flex; flex-direction:column; gap:8px; }
+.wg-planner-week-row {
+  display:flex; align-items:center; gap:10px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:10px 14px;
+}
+.wg-planner-wk-badge {
+  font-size:10px; font-weight:700; color:var(--gold2);
+  background:rgba(212,168,67,.1); border:1px solid rgba(212,168,67,.18);
+  padding:3px 9px; border-radius:6px; flex-shrink:0; min-width:52px; text-align:center;
+}
+.wg-planner-wk-badge.current-wk { background:rgba(124,106,247,.12); border-color:rgba(124,106,247,.28); color:var(--accent2); }
+.wg-planner-wk-input {
+  flex:1; background:transparent; border:none; outline:none;
+  color:var(--text); font-family:inherit; font-size:12px;
+  border-bottom:1px solid var(--border); padding:2px 4px;
+  transition:border-color .2s;
+}
+.wg-planner-wk-input:focus { border-color:rgba(212,168,67,.4); }
+.wg-planner-wk-topics {
+  font-size:10px; color:var(--muted); flex-shrink:0; white-space:nowrap;
+}
+
+/* Modal actions */
+.wg-modal-actions {
+  display:flex; gap:10px; justify-content:flex-end;
+  padding-top:16px; border-top:1px solid var(--border); margin-top:4px;
+}
+.wg-save-btn {
+  background:linear-gradient(135deg,var(--gold),#b8860b);
+  color:#000; border:none; border-radius:12px;
+  padding:11px 24px; font-family:inherit; font-size:13px; font-weight:700;
+  cursor:pointer; transition:opacity .2s, transform .1s;
+  box-shadow:0 4px 16px rgba(212,168,67,.3);
+}
+.wg-save-btn:hover { opacity:.9; }
+.wg-save-btn:active { transform:scale(.97); }
+.wg-cancel-btn {
+  background:var(--bg2); color:var(--muted2);
+  border:1px solid var(--border); border-radius:12px;
+  padding:11px 20px; font-family:inherit; font-size:13px; font-weight:500;
+  cursor:pointer; transition:all .2s;
+}
+.wg-cancel-btn:hover { background:var(--bg3); color:var(--text); }
+
+/* Big goal progress section */
+.wg-biggoal-section { margin-bottom:28px; }
+.wg-biggoal-card {
+  background:linear-gradient(160deg, rgba(212,168,67,.06) 0%, var(--card) 100%);
+  border:1px solid rgba(212,168,67,.2);
+  border-radius:20px; padding:22px;
+}
+.wg-biggoal-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+.wg-biggoal-icon {
+  width:48px; height:48px; border-radius:14px;
+  background:rgba(212,168,67,.12); border:1px solid rgba(212,168,67,.2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; flex-shrink:0;
+}
+.wg-biggoal-title {
+  font-family:'Instrument Serif',serif; font-size:18px; font-weight:400; color:var(--text);
+}
+.wg-biggoal-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.wg-biggoal-pct {
+  margin-left:auto; font-family:'Instrument Serif',serif;
+  font-size:32px; color:var(--gold2); line-height:1;
+}
+.wg-biggoal-bar-wrap { margin-bottom:14px; }
+.wg-biggoal-bar-header {
+  display:flex; justify-content:space-between;
+  font-size:10px; color:var(--muted); margin-bottom:6px;
+}
+.wg-biggoal-bar-track { height:8px; background:var(--bg3); border-radius:99px; overflow:hidden; }
+.wg-biggoal-bar-fill {
+  height:100%; border-radius:99px;
+  background:linear-gradient(90deg,var(--gold),var(--gold2));
+  transition:width .7s cubic-bezier(.4,0,.2,1);
+}
+
+/* Notification banner when weekly goal achieved */
+.wg-achieved-banner {
+  background:linear-gradient(135deg,rgba(62,207,170,.12),rgba(212,168,67,.08));
+  border:1px solid rgba(62,207,170,.25);
+  border-radius:16px; padding:16px 20px;
+  display:flex; align-items:center; gap:14px;
+  margin-bottom:20px;
+  animation:wgBannerPop .5s cubic-bezier(.34,1.2,.64,1);
+}
+@keyframes wgBannerPop { from{transform:scale(.95) translateY(8px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.wg-banner-icon { font-size:28px; flex-shrink:0; }
+.wg-banner-text { flex:1; }
+.wg-banner-title { font-size:13px; font-weight:700; color:var(--teal); margin-bottom:2px; }
+.wg-banner-sub { font-size:11px; color:var(--muted); }
 </style>
 </head>
 <body>
@@ -3541,6 +3880,7 @@ body::before {
     <button class="nav-btn" id="tab-flashcards" onclick="switchTab('flashcards')"><i class="fa-solid fa-layer-group"></i> Flashcards</button>
     <button class="nav-btn" id="tab-progress" onclick="switchTab('progress')"><i class="fa-solid fa-trophy"></i> Progress & Legacy</button>
     <button class="nav-btn" id="tab-pomodoro" onclick="switchTab('pomodoro')"><i class="fa-solid fa-circle-dot"></i> Focus Timer</button>
+    <button class="nav-btn" id="tab-weeklygoals" onclick="switchTab('weeklygoals')" style="background:linear-gradient(135deg,rgba(212,168,67,0.12),rgba(62,207,170,0.12));border-color:rgba(212,168,67,0.25)"><i class="fa-solid fa-bullseye-arrow" style="color:var(--gold2)"></i> <span style="background:linear-gradient(90deg,var(--gold2),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Weekly Goals</span></button>
     <button class="nav-btn" id="tab-aimonitor" onclick="switchTab('aimonitor')" style="background:linear-gradient(135deg,rgba(224,90,122,0.12),rgba(124,106,247,0.12));border-color:rgba(224,90,122,0.25)"><i class="fa-solid fa-robot" style="color:#f08ca8"></i> <span style="background:linear-gradient(90deg,#f08ca8,#a695ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">AI Monitor</span></button>
   </div>
   <!-- XP Pill -->
@@ -3636,6 +3976,60 @@ body::before {
 
 <!-- Streak toast -->
 <div id="streak-toast"></div>
+
+<!-- ══ WEEKLY GOALS MODAL ══ -->
+<div class="wg-modal-overlay" id="wg-modal-overlay">
+  <div class="wg-modal-card">
+    <div class="wg-modal-topbar"></div>
+    <div class="wg-modal-body">
+      <div class="wg-modal-title" id="wg-modal-title">🎯 নতুন Weekly Goal</div>
+
+      <div class="wg-form-group">
+        <label class="wg-form-label">Goal-এর নাম (বড় লক্ষ্য)</label>
+        <input type="text" class="wg-form-input" id="wg-f-name" placeholder="যেমন: JavaScript সব chapter শেষ করবো">
+      </div>
+
+      <div class="wg-form-row">
+        <div class="wg-form-group">
+          <label class="wg-form-label">Category</label>
+          <select class="wg-form-select" id="wg-f-cat" onchange="wgModalOnCatChange()"></select>
+        </div>
+        <div class="wg-form-group">
+          <label class="wg-form-label">Subject</label>
+          <select class="wg-form-select" id="wg-f-sub"></select>
+        </div>
+      </div>
+
+      <div class="wg-form-group">
+        <label class="wg-form-label">মোট Topic Target (সপ্তাহে কতটি topic শেষ করবো)</label>
+        <input type="number" class="wg-form-input" id="wg-f-target" placeholder="যেমন: 10" min="1" max="200" oninput="wgModalUpdateWeeks()">
+        <div class="wg-target-chips" id="wg-target-chips">
+          <button class="wg-target-chip" onclick="wgSetTarget(5)">5</button>
+          <button class="wg-target-chip" onclick="wgSetTarget(10)">10</button>
+          <button class="wg-target-chip" onclick="wgSetTarget(15)">15</button>
+          <button class="wg-target-chip" onclick="wgSetTarget(20)">20</button>
+          <button class="wg-target-chip" onclick="wgSetTarget(30)">30</button>
+        </div>
+      </div>
+
+      <div class="wg-form-group">
+        <label class="wg-form-label">কত সপ্তাহে শেষ করবো</label>
+        <input type="number" class="wg-form-input" id="wg-f-weeks" placeholder="যেমন: 4" min="1" max="52" value="4" oninput="wgModalUpdateWeeks()">
+      </div>
+
+      <!-- Weekly breakdown planner -->
+      <div class="wg-weeks-planner" id="wg-weeks-planner" style="display:none">
+        <div class="wg-weeks-planner-label"><i class="fa-solid fa-calendar-week" style="color:var(--gold2)"></i> প্রতি সপ্তাহের লক্ষ্য (customize করতে পারো)</div>
+        <div class="wg-planner-grid" id="wg-planner-grid"></div>
+      </div>
+
+      <div class="wg-modal-actions">
+        <button class="wg-cancel-btn" onclick="wgCloseModal()">Cancel</button>
+        <button class="wg-save-btn" onclick="wgSaveGoal()"><i class="fa-solid fa-check"></i> Goal Save করো</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- AI Motivator Modal -->
 <div class="ai-motivator-overlay" id="ai-mot-overlay">
@@ -4078,6 +4472,61 @@ body::before {
     </div>
   </div>
 
+
+  <!-- ══ TAB: WEEKLY GOALS ══ -->
+  <div id="view-weeklygoals" class="tab-view">
+    <div class="wg-header">
+      <h2>🎯 Weekly <em style="font-style:italic;background:linear-gradient(135deg,var(--gold2),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Goals</em></h2>
+      <p>বড় goal কে ছোট weekly লক্ষ্যে ভাগ করো। প্রতিটা topic complete করলে progress এগিয়ে যায়।</p>
+    </div>
+
+    <!-- Top row: week badge + add button -->
+    <div class="wg-top-row">
+      <div class="wg-week-badge"><i class="fa-solid fa-calendar-week"></i> <span id="wg-current-week-label">এই সপ্তাহ</span></div>
+      <button class="wg-add-goal-btn" onclick="wgOpenModal()"><i class="fa-solid fa-plus"></i> নতুন Weekly Goal যোগ করো</button>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="wg-summary-row">
+      <div class="wg-sum-card">
+        <div class="wg-sum-icon">🎯</div>
+        <div class="wg-sum-val" id="wg-sum-active" style="color:var(--accent2)">0</div>
+        <div class="wg-sum-lbl">Active Goals</div>
+      </div>
+      <div class="wg-sum-card">
+        <div class="wg-sum-icon">✅</div>
+        <div class="wg-sum-val" id="wg-sum-done" style="color:var(--teal)">0</div>
+        <div class="wg-sum-lbl">এই সপ্তাহ Done</div>
+      </div>
+      <div class="wg-sum-card">
+        <div class="wg-sum-icon">📈</div>
+        <div class="wg-sum-val" id="wg-sum-pct" style="color:var(--gold2)">0%</div>
+        <div class="wg-sum-lbl">Weekly Progress</div>
+      </div>
+      <div class="wg-sum-card">
+        <div class="wg-sum-icon">🏆</div>
+        <div class="wg-sum-val" id="wg-sum-completed-goals" style="color:var(--rose)">0</div>
+        <div class="wg-sum-lbl">Goals Completed</div>
+      </div>
+    </div>
+
+    <!-- Achievement banners (dynamically injected) -->
+    <div id="wg-banners"></div>
+
+    <!-- Goals grid -->
+    <div class="wg-goals-grid" id="wg-goals-grid"></div>
+
+    <!-- Empty state -->
+    <div id="wg-empty" style="display:none">
+      <div class="wg-empty">
+        <i class="fa-solid fa-bullseye-arrow"></i>
+        এখনো কোনো weekly goal সেট করা হয়নি।<br>
+        বড় বড় goal কে ছোট ছোট সাপ্তাহিক লক্ষ্যে ভাগ করো এবং প্রতিদিন এগিয়ে যাও।
+        <br>
+        <button class="wg-empty-btn" onclick="wgOpenModal()"><i class="fa-solid fa-plus"></i> প্রথম Goal যোগ করো</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ══ TAB: AI MONITOR ══ -->
   <div id="view-aimonitor" class="tab-view">
@@ -4576,13 +5025,14 @@ window.onload=async function(){
   } catch(e){ dbRoutine=defaultRoutine; dbTopics={}; }
   // Load KV data from server
   try{
-    const [pd, pt, sk, fc, pm, gm] = await Promise.all([
+    const [pd, pt, sk, fc, pm, gm, wg] = await Promise.all([
       kvGet(POMO_PM_KEY),
       kvGet(POMO_TOPICS_KEY),
       kvGet(SK_KEY),
       kvGet(FC_KEY),
       kvGet(PM_STORAGE_KEY),
-      kvGet(GM_KEY)
+      kvGet(GM_KEY),
+      kvGet(WG_KEY)
     ]);
     if(pd){
       if(pd.date !== getLocalDateStr())
@@ -4594,6 +5044,7 @@ window.onload=async function(){
     if(fc){ fcCardsCache = fc; fcCards = fc; }
     if(pm) pmCache = pm;
     if(gm) gmData = gm;
+    if(wg && Array.isArray(wg)) wgGoals = wg;
     pomoTimeLeft  = pomoData.focusMinutes * 60;
     pomoTotalSecs = pomoData.focusMinutes * 60;
     pomoSyncTopics();
@@ -4611,6 +5062,7 @@ function switchTab(id){
   document.getElementById('tab-'+id).classList.add('active');
   if(id==='progress') renderProgress();
   if(id==='daily') renderDaily();
+  if(id==='weeklygoals') wgRender();
   if(id==='flashcards'){ fcInitFilters(); if(fcCurrentView==='library') fcLibRender(); else fcRender(); }
   if(id==='pomodoro'){ pomoSyncTopics(); pomoRenderTopicSelect(); pomoRenderHistory(); pomoRenderSessionChips(); }
 }
@@ -6475,6 +6927,440 @@ function fcLibDelete(id){
 
 
 // ══════════════════════════════════════════════════
+//  WEEKLY GOALS ENGINE
+// ══════════════════════════════════════════════════
+const WG_KEY = 'weekly_goals_v1';
+let wgGoals = [];     // array of goal objects
+let wgEditId = null;  // currently editing goal id
+
+// ── Load / Save ──
+async function wgLoad(){
+  const data = await kvGet(WG_KEY);
+  if(data && Array.isArray(data)) wgGoals = data;
+  else wgGoals = [];
+}
+async function wgSave(){
+  await kvPut(WG_KEY, wgGoals);
+}
+
+// ── Week utilities ──
+function wgGetWeekStart(date){
+  const d = new Date(date || new Date());
+  const day = d.getDay(); // 0=Sun
+  const diff = d.getDate() - day + (day===0 ? -6 : 1); // Mon
+  const mon = new Date(d.setDate(diff));
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+function wgGetWeekKey(date){
+  const d = date ? new Date(date) : new Date();
+  const jan4 = new Date(Date.UTC(d.getFullYear(),0,4));
+  const dayNum = (d.getUTCDay()||7);
+  const utcD = new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  utcD.setUTCDate(utcD.getUTCDate()+4-dayNum);
+  const yearStart = new Date(Date.UTC(utcD.getUTCFullYear(),0,1));
+  const wk = Math.ceil((((utcD-yearStart)/86400000)+1)/7);
+  return utcD.getUTCFullYear()+'-W'+String(wk).padStart(2,'0');
+}
+function wgWeekLabel(weekKey){
+  const [yr,wStr]=weekKey.split('-W');
+  const wNum=parseInt(wStr);
+  const jan4=new Date(parseInt(yr),0,4);
+  const monday=new Date(jan4.getTime()+(wNum-1)*7*864e5);
+  monday.setDate(monday.getDate()-(monday.getDay()||7)+1);
+  const sunday=new Date(monday.getTime()+6*864e5);
+  const fmt=d=>d.toLocaleDateString('bn-BD',{day:'numeric',month:'short'});
+  return `${fmt(monday)} – ${fmt(sunday)}`;
+}
+function wgCurrentWeekKey(){ return wgGetWeekKey(new Date()); }
+function wgIsCurrentWeek(weekKey){ return weekKey === wgCurrentWeekKey(); }
+
+// ── Count completed topics for a goal in a given week ──
+function wgCountDoneThisWeek(goal){
+  const wk = wgCurrentWeekKey();
+  const weekStart = wgGetWeekStart();
+  const weekEnd   = new Date(weekStart.getTime() + 7*864e5 - 1);
+  let count = 0;
+  Object.values(dbTopics).forEach(arr => arr.forEach(t => {
+    if(t.status !== 'Complete') return;
+    if(t.category !== goal.category) return;
+    if(goal.subject && t.subject !== goal.subject) return;
+    if(!t.completionDate) return;
+    const cd = new Date(t.completionDate+'T00:00:00');
+    if(cd >= weekStart && cd <= weekEnd) count++;
+  }));
+  return count;
+}
+
+// ── Count total completed topics for a goal (all time toward its target) ──
+function wgCountTotalDone(goal){
+  let count = 0;
+  Object.values(dbTopics).forEach(arr => arr.forEach(t => {
+    if(t.status !== 'Complete') return;
+    if(t.category !== goal.category) return;
+    if(goal.subject && t.subject !== goal.subject) return;
+    count++;
+  }));
+  return count;
+}
+
+// ── Calculate which week number of the goal we're in ──
+function wgCurrentGoalWeek(goal){
+  const created = new Date(goal.createdAt);
+  const now = new Date();
+  const msPerWeek = 7*24*60*60*1000;
+  return Math.min(goal.totalWeeks, Math.floor((now-created)/msPerWeek)+1);
+}
+
+// ── Get done count per goal-week ──
+function wgDonePerWeek(goal){
+  const result = [];
+  const created = new Date(goal.createdAt);
+  for(let w=0; w<goal.totalWeeks; w++){
+    const ws = new Date(created.getTime() + w*7*864e5);
+    ws.setHours(0,0,0,0);
+    const we = new Date(ws.getTime() + 7*864e5 - 1);
+    let cnt = 0;
+    Object.values(dbTopics).forEach(arr => arr.forEach(t => {
+      if(t.status !== 'Complete') return;
+      if(t.category !== goal.category) return;
+      if(goal.subject && t.subject !== goal.subject) return;
+      if(!t.completionDate) return;
+      const cd = new Date(t.completionDate+'T00:00:00');
+      if(cd >= ws && cd <= we) cnt++;
+    }));
+    result.push({ week: w+1, done: cnt, target: goal.weeklyTargets[w] || Math.ceil(goal.totalTarget / goal.totalWeeks) });
+  }
+  return result;
+}
+
+// ── Render Weekly Goals tab ──
+function wgRender(){
+  // Update week label
+  const wkLabel = document.getElementById('wg-current-week-label');
+  if(wkLabel) wkLabel.textContent = wgWeekLabel(wgCurrentWeekKey());
+
+  const grid = document.getElementById('wg-goals-grid');
+  const empty = document.getElementById('wg-empty');
+  if(!grid) return;
+
+  if(!wgGoals.length){
+    grid.innerHTML='';
+    if(empty) empty.style.display='block';
+    document.getElementById('wg-sum-active').innerText = '0';
+    document.getElementById('wg-sum-done').innerText = '0';
+    document.getElementById('wg-sum-pct').innerText = '0%';
+    document.getElementById('wg-sum-completed-goals').innerText = '0';
+    document.getElementById('wg-banners').innerHTML = '';
+    return;
+  }
+  if(empty) empty.style.display='none';
+
+  // Summary stats
+  let totalWeekDone=0, totalWeekTarget=0, completedGoals=0;
+  const banners = [];
+
+  grid.innerHTML = wgGoals.map(goal=>{
+    const ci = cats.indexOf(goal.category);
+    const catColor = ci>=0 ? catColors[ci] : '#a695ff';
+    const catClass = ci>=0 ? 'cat-'+ci : 'cat-0';
+
+    const weekDone = wgCountDoneThisWeek(goal);
+    const totalDone = wgCountTotalDone(goal);
+    const totalPct = Math.min(100, Math.round(totalDone / goal.totalTarget * 100));
+    const curGoalWeek = wgCurrentGoalWeek(goal);
+    const weekTarget = (goal.weeklyTargets && goal.weeklyTargets[curGoalWeek-1]) || Math.ceil(goal.totalTarget/goal.totalWeeks);
+    const weekPct = Math.min(100, Math.round(weekDone / weekTarget * 100));
+
+    totalWeekDone += weekDone;
+    totalWeekTarget += weekTarget;
+    if(totalPct >= 100) completedGoals++;
+
+    // Week chips
+    const perWeek = wgDonePerWeek(goal);
+    const weekChips = perWeek.map((w,i)=>{
+      const pct = Math.min(100, Math.round(w.done/w.target*100));
+      const isCur = i+1 === curGoalWeek;
+      const isDone = pct >= 100;
+      return `<div class="wg-week-chip ${isDone?'wg-chip-done':''} ${isCur?'wg-chip-current':''}">
+        <div class="wg-chip-label">${isCur?'এই সপ্তাহ':'W'+w.week}</div>
+        <div class="wg-chip-val" style="color:${isDone?'var(--teal)':isCur?'var(--accent2)':'var(--muted2)'}">${w.done}<span style="color:var(--muted);font-size:9px">/${w.target}</span></div>
+        <div class="wg-chip-bar"><div class="wg-chip-fill" style="width:${pct}%;background:${isDone?'var(--teal)':isCur?'var(--accent2)':catColor}"></div></div>
+      </div>`;
+    }).join('');
+
+    // Recent completed topics
+    const recentTopics = [];
+    const weekStart = wgGetWeekStart();
+    const weekEnd = new Date(weekStart.getTime()+7*864e5-1);
+    Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+      if(t.status!=='Complete'||t.category!==goal.category) return;
+      if(goal.subject && t.subject!==goal.subject) return;
+      if(!t.completionDate) return;
+      const cd = new Date(t.completionDate+'T00:00:00');
+      if(cd>=weekStart&&cd<=weekEnd) recentTopics.push(t.topicName);
+    }));
+
+    const topicChipsHtml = recentTopics.slice(0,5).map(n=>
+      `<span class="wg-topic-chip done-chip"><i class="fa-solid fa-check" style="font-size:7px"></i>${n.length>22?n.slice(0,22)+'…':n}</span>`
+    ).join('') + (recentTopics.length>5?`<span class="wg-topic-chip">+${recentTopics.length-5} more</span>`:'');
+
+    // Ring circumference
+    const r=28, circ=2*Math.PI*r;
+    const ringOffset = circ - (totalPct/100)*circ;
+
+    // Achievement banner
+    if(weekDone>=weekTarget && weekTarget>0){
+      banners.push({goal, weekDone, weekTarget});
+    }
+
+    return `<div class="wg-goal-card ${catClass} ${totalPct>=100?'wg-done-card':''}">
+      <div class="wg-card-top">
+        <div class="wg-card-ring-wrap">
+          <svg class="wg-ring-svg" viewBox="0 0 64 64">
+            <circle class="wg-ring-bg" cx="32" cy="32" r="${r}"/>
+            <circle class="wg-ring-fill" cx="32" cy="32" r="${r}"
+              stroke="${catColor}"
+              stroke-dasharray="${circ}"
+              stroke-dashoffset="${ringOffset}"
+              style="filter:drop-shadow(0 0 4px ${catColor}44)"/>
+          </svg>
+          <div class="wg-ring-center" style="color:${catColor}">${totalPct}%</div>
+        </div>
+        <div class="wg-card-info">
+          <span class="wg-card-cat-badge" style="background:${catColor}18;color:${catColor}">${goal.category}</span>
+          <div class="wg-card-title">${goal.name}</div>
+          <div class="wg-card-subtitle">${goal.subject||'All subjects'} · ${goal.totalTarget} topics · ${goal.totalWeeks} weeks</div>
+        </div>
+        <div class="wg-card-actions">
+          <button class="wg-edit-btn" onclick="wgOpenModal(${goal.id})"><i class="fa-solid fa-pen"></i></button>
+          <button class="wg-del-btn" onclick="wgDeleteGoal(${goal.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+
+      <!-- Overall progress bar -->
+      <div class="wg-card-bar-wrap">
+        <div class="wg-card-bar-header">
+          <span>Overall Progress</span>
+          <span><strong style="color:${catColor}">${totalDone}</strong> / ${goal.totalTarget} topics</span>
+        </div>
+        <div class="wg-card-bar-track">
+          <div class="wg-card-bar-fill" style="width:${totalPct}%;background:linear-gradient(90deg,${catColor},${catColor}bb)"></div>
+        </div>
+      </div>
+
+      <!-- This week progress bar -->
+      <div class="wg-card-bar-wrap">
+        <div class="wg-card-bar-header">
+          <span style="color:var(--accent2)">এই সপ্তাহ (Week ${curGoalWeek}/${goal.totalWeeks})</span>
+          <span><strong style="color:${weekDone>=weekTarget?'var(--teal)':'var(--accent2)'}">${weekDone}</strong> / ${weekTarget} topics</span>
+        </div>
+        <div class="wg-card-bar-track">
+          <div class="wg-card-bar-fill" style="width:${weekPct}%;background:${weekDone>=weekTarget?'linear-gradient(90deg,var(--teal),#2aa88c)':'linear-gradient(90deg,var(--accent),var(--accent2))'}"></div>
+        </div>
+      </div>
+
+      <!-- Weekly chips -->
+      <div class="wg-weeks-row">${weekChips}</div>
+
+      <!-- This week done badge or topic list -->
+      ${weekDone>=weekTarget&&weekTarget>0
+        ?`<div style="margin-bottom:8px"><span class="wg-done-badge"><i class="fa-solid fa-trophy" style="font-size:10px"></i> এই সপ্তাহের লক্ষ্য পূরণ!</span></div>`
+        :''}
+      ${totalPct>=100?`<div><span class="wg-done-badge" style="background:rgba(212,168,67,.12);border-color:rgba(212,168,67,.25);color:var(--gold2)"><i class="fa-solid fa-crown" style="font-size:10px"></i> সম্পূর্ণ Goal অর্জিত!</span></div>`:''}
+      ${recentTopics.length>0?`<div class="wg-topic-chips">${topicChipsHtml}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Summary stats
+  const overallPct = totalWeekTarget>0 ? Math.min(100,Math.round(totalWeekDone/totalWeekTarget*100)) : 0;
+  document.getElementById('wg-sum-active').innerText = wgGoals.length;
+  document.getElementById('wg-sum-done').innerText = totalWeekDone;
+  document.getElementById('wg-sum-pct').innerText = overallPct+'%';
+  document.getElementById('wg-sum-completed-goals').innerText = completedGoals;
+
+  // Render banners
+  const bannerEl = document.getElementById('wg-banners');
+  if(bannerEl){
+    bannerEl.innerHTML = banners.map(b=>`
+      <div class="wg-achieved-banner">
+        <div class="wg-banner-icon">🏆</div>
+        <div class="wg-banner-text">
+          <div class="wg-banner-title">${b.goal.name} — এই সপ্তাহের লক্ষ্য পূরণ!</div>
+          <div class="wg-banner-sub">${b.weekDone} টি topic শেষ করেছ, target ছিল ${b.weekTarget} টি। অসাধারণ কাজ!</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ── Modal ──
+function wgOpenModal(id){
+  wgEditId = id || null;
+
+  // Populate category select
+  const catSel = document.getElementById('wg-f-cat');
+  catSel.innerHTML = cats.map((c,i)=>`<option value="${c}">${c}</option>`).join('');
+  wgModalOnCatChange();
+
+  if(id){
+    // Edit existing
+    const goal = wgGoals.find(g=>g.id===id);
+    if(!goal) return;
+    document.getElementById('wg-modal-title').innerText = '✏️ Goal Edit করো';
+    document.getElementById('wg-f-name').value = goal.name;
+    catSel.value = goal.category;
+    wgModalOnCatChange();
+    document.getElementById('wg-f-sub').value = goal.subject || '';
+    document.getElementById('wg-f-target').value = goal.totalTarget;
+    document.getElementById('wg-f-weeks').value = goal.totalWeeks;
+    wgModalUpdateWeeks(goal.weeklyTargets);
+  } else {
+    document.getElementById('wg-modal-title').innerText = '🎯 নতুন Weekly Goal';
+    document.getElementById('wg-f-name').value = '';
+    document.getElementById('wg-f-target').value = '';
+    document.getElementById('wg-f-weeks').value = '4';
+    document.getElementById('wg-weeks-planner').style.display = 'none';
+    document.getElementById('wg-planner-grid').innerHTML = '';
+    // Reset target chips
+    document.querySelectorAll('.wg-target-chip').forEach(c=>c.classList.remove('selected'));
+  }
+
+  document.getElementById('wg-modal-overlay').classList.add('visible');
+  setTimeout(()=>document.getElementById('wg-f-name').focus(),300);
+}
+
+function wgCloseModal(){
+  document.getElementById('wg-modal-overlay').classList.remove('visible');
+  wgEditId = null;
+}
+
+document.addEventListener('click', e=>{
+  if(e.target === document.getElementById('wg-modal-overlay')) wgCloseModal();
+});
+
+function wgModalOnCatChange(){
+  const cat = document.getElementById('wg-f-cat').value;
+  const subSel = document.getElementById('wg-f-sub');
+  // Collect unique subjects for this category from routine
+  const subjects = new Set();
+  days.forEach(day=>{
+    const ci = cats.indexOf(cat);
+    if(ci<0) return;
+    (dbRoutine[day]?.[ci]||[]).forEach(s=>subjects.add(s));
+  });
+  subSel.innerHTML = `<option value="">— সব Subject —</option>` + [...subjects].map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+
+function wgSetTarget(n){
+  document.getElementById('wg-f-target').value = n;
+  document.querySelectorAll('.wg-target-chip').forEach(c=>{
+    c.classList.toggle('selected', parseInt(c.innerText)===n);
+  });
+  wgModalUpdateWeeks();
+}
+
+function wgModalUpdateWeeks(existingTargets){
+  const total = parseInt(document.getElementById('wg-f-target').value)||0;
+  const weeks = parseInt(document.getElementById('wg-f-weeks').value)||4;
+  const planner = document.getElementById('wg-weeks-planner');
+  const grid = document.getElementById('wg-planner-grid');
+  if(!total||!weeks){ planner.style.display='none'; return; }
+  planner.style.display='block';
+
+  const perWeek = Math.ceil(total/weeks);
+  const curWk = wgCurrentGoalWeek({createdAt: new Date().toISOString(), totalWeeks: weeks});
+
+  grid.innerHTML = Array.from({length:weeks},(_,i)=>{
+    const isCur = i+1===1; // new goal, first week is current
+    const defTarget = existingTargets ? (existingTargets[i]||perWeek) : perWeek;
+    return `<div class="wg-planner-week-row">
+      <span class="wg-planner-wk-badge ${isCur?'current-wk':''}">Week ${i+1}</span>
+      <input class="wg-planner-wk-input" id="wg-wt-${i}" type="number" min="0" max="999" value="${defTarget}" placeholder="Topics">
+      <span class="wg-planner-wk-topics">topics</span>
+    </div>`;
+  }).join('');
+}
+
+async function wgSaveGoal(){
+  const name = document.getElementById('wg-f-name').value.trim();
+  const cat  = document.getElementById('wg-f-cat').value;
+  const sub  = document.getElementById('wg-f-sub').value || '';
+  const total = parseInt(document.getElementById('wg-f-target').value)||0;
+  const weeks = parseInt(document.getElementById('wg-f-weeks').value)||4;
+  if(!name){ alert('Goal-এর নাম দাও।'); return; }
+  if(total<1){ alert('কতটি topic শেষ করবে সেটা দাও।'); return; }
+
+  // Collect weekly targets from planner inputs
+  const weeklyTargets = [];
+  for(let i=0;i<weeks;i++){
+    const inp = document.getElementById('wg-wt-'+i);
+    weeklyTargets.push(inp ? (parseInt(inp.value)||Math.ceil(total/weeks)) : Math.ceil(total/weeks));
+  }
+
+  if(wgEditId){
+    // Update existing
+    const idx = wgGoals.findIndex(g=>g.id===wgEditId);
+    if(idx>=0){
+      wgGoals[idx] = {...wgGoals[idx], name, category:cat, subject:sub, totalTarget:total, totalWeeks:weeks, weeklyTargets};
+    }
+  } else {
+    wgGoals.push({
+      id: Date.now(),
+      name, category:cat, subject:sub,
+      totalTarget:total, totalWeeks:weeks,
+      weeklyTargets,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  await wgSave();
+  wgCloseModal();
+  wgRender();
+
+  // Toast
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML=`<div class="toast-icon" style="background:rgba(212,168,67,.15);color:var(--gold2)"><i class="fa-solid fa-bullseye-arrow"></i></div><div><div class="toast-title">Goal Saved!</div><div class="toast-msg">${name}</div></div>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.transition='all .4s';t.style.opacity='0';t.style.transform='translateY(-8px)';setTimeout(()=>t.remove(),400);},3000);
+}
+
+async function wgDeleteGoal(id){
+  if(!confirm('এই goal delete করবে?')) return;
+  wgGoals = wgGoals.filter(g=>g.id!==id);
+  await wgSave();
+  wgRender();
+}
+
+function wgOnTopicComplete(){
+  // If user is on the weekly goals tab, re-render it
+  const tab = document.getElementById('view-weeklygoals');
+  if(tab && tab.classList.contains('active')) wgRender();
+  // Show toast if any goal's weekly target is hit
+  wgGoals.forEach(goal=>{
+    const done = wgCountDoneThisWeek(goal);
+    const curWeekIdx = wgCurrentGoalWeek(goal)-1;
+    const weekTarget = (goal.weeklyTargets&&goal.weeklyTargets[curWeekIdx]) || Math.ceil(goal.totalTarget/goal.totalWeeks);
+    if(done===weekTarget){
+      const c=document.getElementById('toast-container');
+      const t=document.createElement('div');
+      t.className='toast';
+      t.innerHTML=`<div class="toast-icon" style="background:rgba(62,207,170,.15);color:var(--teal)"><i class="fa-solid fa-trophy"></i></div><div><div class="toast-title">🎯 Weekly Goal Hit!</div><div class="toast-msg">${goal.name} — এই সপ্তাহের target পূরণ!</div></div>`;
+      c.appendChild(t);
+      setTimeout(()=>{t.style.transition='all .4s';t.style.opacity='0';t.style.transform='translateY(-8px)';setTimeout(()=>t.remove(),400);},4000);
+      confetti({particleCount:80,spread:80,origin:{y:0.6},colors:['#d4a843','#f5c869','#3ecfaa','#fff']});
+    }
+  });
+}
+
+// Load goals on init
+(async function wgInit(){
+  await wgLoad();
+})();
+
+
+// ══════════════════════════════════════════════════
 //  PLAN MAP ENGINE
 // ══════════════════════════════════════════════════
 const PM_STORAGE_KEY = 'plan_map_v1';
@@ -7849,6 +8735,8 @@ const _origGmOnTopicComplete = gmOnTopicComplete;
 window.gmOnTopicComplete = function(){
   _origGmOnTopicComplete();
   setTimeout(aimPersistToday, 500);
+  // Update weekly goals progress
+  setTimeout(wgOnTopicComplete, 300);
 };
 
 // Init AIM on load
