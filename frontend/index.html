@@ -9755,5 +9755,705 @@ Response format (JSON only, no markdown):
   }
 }
 </script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AI COACH — Floating Persistent Guide
+     ═══════════════════════════════════════════════════════════ -->
+<style>
+/* ── Floating Bubble ── */
+#coach-bubble {
+  position: fixed;
+  bottom: 28px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+#coach-btn {
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c6af7, #3ecfaa);
+  border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 6px 24px rgba(124,106,247,0.5), 0 0 0 0 rgba(124,106,247,0.3);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  pointer-events: all;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: coachPulse 3s ease infinite;
+  position: relative;
+}
+#coach-btn:hover { transform: scale(1.08); box-shadow: 0 8px 30px rgba(124,106,247,0.65); }
+@keyframes coachPulse {
+  0%,100% { box-shadow: 0 6px 24px rgba(124,106,247,0.5), 0 0 0 0 rgba(124,106,247,0.25); }
+  50%      { box-shadow: 0 6px 24px rgba(124,106,247,0.5), 0 0 0 10px rgba(124,106,247,0); }
+}
+#coach-unread {
+  position: absolute;
+  top: -3px; right: -3px;
+  width: 16px; height: 16px;
+  background: #e05a7a;
+  border-radius: 50%;
+  border: 2px solid #06070f;
+  font-size: 8px;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  display: none;
+}
+
+/* ── Nudge Bubble ── */
+#coach-nudge {
+  background: var(--card);
+  border: 1px solid rgba(124,106,247,0.3);
+  border-radius: 14px 14px 4px 14px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text);
+  max-width: 220px;
+  line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  pointer-events: all;
+  cursor: pointer;
+  position: relative;
+  animation: nudgeIn 0.35s cubic-bezier(0.34,1.2,0.64,1);
+  display: none;
+}
+@keyframes nudgeIn {
+  from { opacity:0; transform: scale(0.85) translateY(8px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+#coach-nudge::after {
+  content:'';
+  position:absolute; bottom:-7px; right:18px;
+  width:0; height:0;
+  border-left: 7px solid transparent;
+  border-right: 0px solid transparent;
+  border-top: 7px solid rgba(124,106,247,0.3);
+}
+#coach-nudge-close {
+  position: absolute; top: 6px; right: 8px;
+  font-size: 10px; color: var(--muted); cursor: pointer;
+  background: none; border: none; padding: 2px 4px;
+}
+
+/* ── Chat Panel ── */
+#coach-panel {
+  position: fixed;
+  bottom: 92px;
+  right: 24px;
+  z-index: 99998;
+  width: 340px;
+  max-height: 520px;
+  background: var(--card);
+  border: 1px solid rgba(124,106,247,0.25);
+  border-radius: 20px;
+  box-shadow: 0 16px 50px rgba(0,0,0,0.55), 0 0 40px rgba(124,106,247,0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.9) translateY(16px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.34,1.2,0.64,1), opacity 0.25s;
+}
+#coach-panel.open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+#coach-panel::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--accent), var(--teal), var(--gold2));
+  border-radius: 20px 20px 0 0;
+}
+
+/* Panel Header */
+.cp-header {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.cp-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #7c6af7, #3ecfaa);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.cp-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.cp-status-row { display:flex; align-items:center; gap:5px; margin-top:1px; }
+.cp-online-dot { width:6px; height:6px; background:var(--teal); border-radius:50%; animation:coachPulse 2s ease infinite; }
+.cp-status-txt { font-size:10px; color:var(--teal); }
+.cp-close-btn {
+  margin-left:auto; background:none; border:none;
+  color:var(--muted); font-size:14px; cursor:pointer; padding:4px 6px;
+  border-radius:6px; transition:color 0.2s, background 0.2s;
+}
+.cp-close-btn:hover { color:var(--text); background:var(--bg3); }
+
+/* Mode selector */
+.cp-modes {
+  display: flex; gap: 6px;
+  padding: 10px 12px 8px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.cp-mode-btn {
+  flex-shrink: 0;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 10px;
+  font-size: 10px; font-weight: 600; color: var(--muted2);
+  cursor: pointer; font-family: inherit;
+  transition: all 0.2s;
+  display: flex; align-items:center; gap:4px;
+}
+.cp-mode-btn.active {
+  background: rgba(124,106,247,0.15);
+  border-color: rgba(124,106,247,0.35);
+  color: var(--accent2);
+}
+.cp-mode-btn:hover:not(.active) { background:var(--bg3); color:var(--text); }
+
+/* Messages */
+#coach-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+#coach-messages::-webkit-scrollbar { width: 3px; }
+#coach-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius:10px; }
+
+.cm-msg { display:flex; gap:8px; align-items:flex-start; }
+.cm-msg.user { flex-direction:row-reverse; }
+.cm-avatar {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:12px;
+}
+.cm-avatar.ai {
+  background: linear-gradient(135deg, rgba(124,106,247,0.2), rgba(62,207,170,0.2));
+  border: 1px solid rgba(124,106,247,0.25);
+  color: var(--accent2);
+}
+.cm-avatar.user { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--muted2); font-size:11px; }
+.cm-bubble {
+  max-width: 80%;
+  padding: 9px 12px;
+  border-radius: 14px 14px 14px 4px;
+  font-size: 12px; line-height: 1.6;
+  color: var(--text);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  word-break: break-word;
+}
+.cm-msg.user .cm-bubble {
+  background: rgba(124,106,247,0.12);
+  border-color: rgba(124,106,247,0.25);
+  border-radius: 14px 14px 4px 14px;
+  color: var(--accent2);
+}
+.cm-time { font-size: 9px; color: var(--muted); margin-top: 3px; }
+.cm-typing {
+  display: flex; align-items: center; gap: 3px;
+  padding: 10px 14px;
+}
+.cm-dot { width:6px;height:6px;background:var(--muted);border-radius:50;animation:typingBounce 1.2s ease infinite; }
+.cm-dot:nth-child(2){animation-delay:.15s}
+.cm-dot:nth-child(3){animation-delay:.3s}
+@keyframes typingBounce { 0%,80%,100%{transform:translateY(0);opacity:.4} 40%{transform:translateY(-5px);opacity:1} }
+
+/* Quick actions */
+.cp-quick-actions {
+  display:flex; gap:6px; flex-wrap:wrap;
+  padding: 0 12px 8px;
+}
+.cp-qa-btn {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:999px; padding:4px 10px;
+  font-size:10px; color:var(--muted2); cursor:pointer;
+  font-family:inherit; transition:all 0.2s; white-space:nowrap;
+}
+.cp-qa-btn:hover { background:rgba(124,106,247,0.1); border-color:rgba(124,106,247,0.3); color:var(--accent2); }
+
+/* Input */
+.cp-input-row {
+  padding: 10px 12px 12px;
+  display: flex; gap: 8px; align-items: center;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#coach-input {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 9px 13px;
+  color: var(--text);
+  font-family: inherit; font-size: 12px;
+  outline: none; resize: none;
+  transition: border-color 0.2s;
+  max-height: 80px; overflow-y: auto;
+  line-height: 1.5;
+}
+#coach-input:focus { border-color: rgba(124,106,247,0.45); }
+#coach-input::placeholder { color: var(--muted); }
+#coach-send-btn {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #5a4fd4);
+  border: none; color: #fff; font-size: 13px;
+  cursor: pointer; display:flex; align-items:center; justify-content:center;
+  transition: opacity 0.2s, transform 0.1s;
+  flex-shrink: 0;
+}
+#coach-send-btn:hover { opacity:0.85; }
+#coach-send-btn:active { transform:scale(0.95); }
+
+@media(max-width:420px){
+  #coach-panel { width:calc(100vw - 24px); right:12px; }
+  #coach-bubble { right:12px; }
+}
+</style>
+
+<!-- Coach HTML -->
+<div id="coach-bubble">
+  <div id="coach-nudge">
+    <button id="coach-nudge-close" onclick="coachDismissNudge(event)">✕</button>
+    <span id="coach-nudge-text">👋 আমি তোমার AI Coach। চলো শুরু করি!</span>
+  </div>
+  <button id="coach-btn" onclick="coachTogglePanel()" title="AI Coach">
+    🧠
+    <span id="coach-unread">1</span>
+  </button>
+</div>
+
+<div id="coach-panel">
+  <div class="cp-header">
+    <div class="cp-avatar">🧠</div>
+    <div>
+      <div class="cp-name">AI Coach</div>
+      <div class="cp-status-row">
+        <div class="cp-online-dot"></div>
+        <div class="cp-status-txt">সবসময় active</div>
+      </div>
+    </div>
+    <button class="cp-close-btn" onclick="coachTogglePanel()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+
+  <div class="cp-modes">
+    <button class="cp-mode-btn active" onclick="coachSetMode('guide', this)"><i class="fa-solid fa-compass"></i> Guide করো</button>
+    <button class="cp-mode-btn" onclick="coachSetMode('strict', this)"><i class="fa-solid fa-bolt"></i> Strict Mode</button>
+    <button class="cp-mode-btn" onclick="coachSetMode('review', this)"><i class="fa-solid fa-chart-line"></i> Review</button>
+    <button class="cp-mode-btn" onclick="coachSetMode('plan', this)"><i class="fa-solid fa-calendar-check"></i> Plan</button>
+  </div>
+
+  <div id="coach-messages"></div>
+
+  <div class="cp-quick-actions" id="coach-qa"></div>
+
+  <div class="cp-input-row">
+    <input type="text" id="coach-input" placeholder="Coach-কে জিজ্ঞেস করো…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();coachSend()}" />
+    <button id="coach-send-btn" onclick="coachSend()"><i class="fa-solid fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  AI COACH SYSTEM
+// ══════════════════════════════════════════════════════
+
+let coachOpen = false;
+let coachMode = 'guide';
+let coachHistory = [];
+let coachNudgeTimer = null;
+let coachIsTyping = false;
+let coachUnreadCount = 0;
+let coachNudgeShown = false;
+let coachLastNudgeTime = 0;
+
+const COACH_NUDGE_INTERVAL = 12 * 60 * 1000; // 12 min
+const COACH_QUICK_ACTIONS = {
+  guide: ['এখন কী করবো?', 'আমাকে motivate করো', 'পরের task কী?', 'Focus কীভাবে বাড়াবো?'],
+  strict: ['আমি আজ কতটুকু করেছি?', 'আমাকে সরাসরি বলো', 'কী miss করেছি?', 'Challenge দাও'],
+  review: ['আজকের progress দেখাও', 'দুর্বলতা কোথায়?', 'ভালো কী করেছি?', 'কাল কী করতে হবে?'],
+  plan: ['আজকের plan বানাও', 'Pomodoro schedule দাও', 'Priority কী হওয়া উচিত?', 'Weekly goal কী?']
+};
+
+const COACH_SYSTEM_PROMPTS = {
+  guide: `তুমি একজন personal AI learning coach। তোমার কাজ হলো ছাত্রকে step-by-step guide করা, consistent রাখা, এবং সঠিক পথে পরিচালিত করা।
+বৈশিষ্ট্য:
+- বাংলায় কথা বলো, friendly কিন্তু focused
+- প্রতিটা response-এ একটা clear "পরবর্তী পদক্ষেপ" দাও
+- Short ও actionable রাখো (3-5 sentence max)
+- ছাত্রকে নাম ধরে call করো না, "তুমি" বলো
+- Session data থাকলে সেটা reference করো`,
+
+  strict: `তুমি একজন strict কিন্তু caring coach। তোমার দায়িত্ব হলো ছাত্রকে সত্য বলা, excuse accept না করা, কিন্তু হতাশ না করা।
+বৈশিষ্ট্য:
+- সরাসরি ও honest হও
+- Sugar-coat করো না, কিন্তু cruel-ও না
+- Accountability তৈরি করো
+- "এখনই করো" এই attitude রাখো
+- Data দিয়ে কথা বলো`,
+
+  review: `তুমি একজন analytical learning coach। Progress data দেখে insightful feedback দাও।
+বৈশিষ্ট্য:
+- Data-driven analysis করো
+- Patterns বের করো (কখন ভালো করে, কখন কম)
+- Specific improvement areas চিহ্নিত করো
+- Celebrate genuine wins, কিন্তু complacency এড়াও`,
+
+  plan: `তুমি একজন strategic learning planner। Efficient ও realistic plans তৈরি করো।
+বৈশিষ্ট্য:
+- Time-blocked schedules দাও
+- Pomodoro technique use করো
+- Priority matrix apply করো (urgent vs important)
+- Realistic হও — overload করো না`
+};
+
+// ── Get current app state ──
+function coachGetAppState() {
+  try {
+    const streakData = skGet ? skGet() : {};
+    const aimData = window.aimData || {};
+    const today = getLocalDateStr ? getLocalDateStr(new Date()) : new Date().toISOString().slice(0,10);
+    const todayLog = (aimData.dailyLog || {})[today] || {};
+
+    // Get topic counts
+    const topicsEl = document.querySelectorAll('.topic-item');
+    const completedEl = document.querySelectorAll('.completed-item');
+    const timerRunning = document.querySelector('.pom-timer.running, #pom-state');
+
+    return {
+      streak: streakData.cur || 0,
+      todayScore: todayLog.score || 0,
+      todayTopics: todayLog.topics || 0,
+      todayRevisions: todayLog.revisions || 0,
+      todayFocusMin: todayLog.focusMin || 0,
+      totalTopics: topicsEl.length,
+      completedTopics: completedEl.length,
+      currentTime: new Date().toLocaleTimeString('bn-BD', {hour:'2-digit', minute:'2-digit'}),
+      currentDate: today,
+      dayOfWeek: ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'][new Date().getDay()]
+    };
+  } catch(e) {
+    return { streak:0, todayScore:0, todayTopics:0, todayFocusMin:0 };
+  }
+}
+
+// ── Render quick actions ──
+function coachRenderQA() {
+  const qa = document.getElementById('coach-qa');
+  const actions = COACH_QUICK_ACTIONS[coachMode] || [];
+  qa.innerHTML = actions.map(a =>
+    `<button class="cp-qa-btn" onclick="coachQuickAsk(this.textContent)">${a}</button>`
+  ).join('');
+}
+
+// ── Add message to chat ──
+function coachAddMessage(role, text, animate=true) {
+  const box = document.getElementById('coach-messages');
+  const div = document.createElement('div');
+  div.className = 'cm-msg ' + role;
+  const time = new Date().toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});
+  const icon = role === 'ai' ? '<i class="fa-solid fa-robot"></i>' : '<i class="fa-solid fa-user"></i>';
+
+  div.innerHTML = `
+    <div class="cm-avatar ${role}">${icon}</div>
+    <div>
+      <div class="cm-bubble">${role==='ai' ? formatAIMsg(text) : text}</div>
+      <div class="cm-time">${time}</div>
+    </div>`;
+
+  if (animate && role === 'ai') div.style.animation = 'nudgeIn 0.3s ease';
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── Show typing indicator ──
+function coachShowTyping() {
+  const box = document.getElementById('coach-messages');
+  const div = document.createElement('div');
+  div.className = 'cm-msg ai';
+  div.id = 'coach-typing-indicator';
+  div.innerHTML = `
+    <div class="cm-avatar ai"><i class="fa-solid fa-robot"></i></div>
+    <div class="cm-bubble cm-typing">
+      <div class="cm-dot"></div>
+      <div class="cm-dot"></div>
+      <div class="cm-dot"></div>
+    </div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function coachRemoveTyping() {
+  const el = document.getElementById('coach-typing-indicator');
+  if (el) el.remove();
+}
+
+// ── Send message to AI ──
+async function coachCallAI(userMsg) {
+  const state = coachGetAppState();
+  const systemPrompt = COACH_SYSTEM_PROMPTS[coachMode];
+  const contextNote = `\n\n[বর্তমান অবস্থা: ${state.dayOfWeek} ${state.currentTime} | Streak: ${state.streak} দিন | আজকের score: ${state.todayScore} | Topics done: ${state.todayTopics} | Focus: ${state.todayFocusMin} min | Total pending topics: ${state.totalTopics}]`;
+
+  const messages = [
+    ...coachHistory.slice(-8),
+    { role: 'user', content: userMsg + contextNote }
+  ];
+
+  try {
+    const response = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 250,
+        system: systemPrompt,
+        messages
+      })
+    });
+    const data = await response.json();
+    return data.content.map(c => c.text || '').join('');
+  } catch(e) {
+    return 'এই মুহূর্তে connect করতে পারছি না। একটু পর try করো।';
+  }
+}
+
+// ── Main send function ──
+async function coachSend(msg) {
+  if (coachIsTyping) return;
+  const input = document.getElementById('coach-input');
+  const text = (msg || input.value).trim();
+  if (!text) return;
+
+  input.value = '';
+  coachAddMessage('user', text);
+  coachHistory.push({ role: 'user', content: text });
+
+  coachIsTyping = true;
+  coachShowTyping();
+
+  const reply = await coachCallAI(text);
+  coachRemoveTyping();
+  coachIsTyping = false;
+
+  coachAddMessage('ai', reply);
+  coachHistory.push({ role: 'assistant', content: reply });
+}
+
+function coachQuickAsk(text) {
+  document.getElementById('coach-input').value = text;
+  coachSend(text);
+}
+
+// ── Toggle panel ──
+function coachTogglePanel() {
+  coachOpen = !coachOpen;
+  const panel = document.getElementById('coach-panel');
+  panel.classList.toggle('open', coachOpen);
+
+  if (coachOpen) {
+    coachDismissNudge();
+    coachUnreadCount = 0;
+    document.getElementById('coach-unread').style.display = 'none';
+    // Auto-greet on first open
+    if (coachHistory.length === 0) {
+      setTimeout(coachAutoGreet, 400);
+    }
+    setTimeout(() => document.getElementById('coach-input').focus(), 300);
+  }
+}
+
+// ── Set mode ──
+function coachSetMode(mode, btn) {
+  coachMode = mode;
+  document.querySelectorAll('.cp-mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  coachRenderQA();
+
+  const modeMessages = {
+    guide: '🧭 Guide mode চালু! আমি তোমাকে প্রতিটা পদক্ষেপে নিয়ে যাবো।',
+    strict: '⚡ Strict mode চালু! এখন excuse চলবে না। শুধু কাজ।',
+    review: '📊 Review mode চালু! তোমার progress analyze করবো।',
+    plan: '📅 Planning mode চালু! একটা solid plan তৈরি করি।'
+  };
+  coachAddMessage('ai', modeMessages[mode]);
+}
+
+// ── Auto greet ──
+async function coachAutoGreet() {
+  coachIsTyping = true;
+  coachShowTyping();
+
+  const state = coachGetAppState();
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'সকাল' : hour < 17 ? 'দুপুর' : hour < 20 ? 'বিকেল' : 'রাত';
+
+  const prompt = `আমি এইমাত্র app খুললাম। ${greeting} ${state.currentTime}। আমার streak ${state.streak} দিন, আজকে ${state.todayTopics}টি topic করেছি, ${state.todayFocusMin} মিনিট focus করেছি। আমাকে একটা warm কিন্তু focused greeting দাও এবং এখন কী করা উচিত সেটা বলো।`;
+
+  const reply = await coachCallAI(prompt);
+  coachRemoveTyping();
+  coachIsTyping = false;
+  coachAddMessage('ai', reply);
+  coachHistory.push({ role: 'assistant', content: reply });
+}
+
+// ── Nudge system ──
+function coachShowNudge(text) {
+  const nudge = document.getElementById('coach-nudge');
+  const nudgeText = document.getElementById('coach-nudge-text');
+  nudgeText.textContent = text;
+  nudge.style.display = 'block';
+
+  coachUnreadCount++;
+  const unreadEl = document.getElementById('coach-unread');
+  unreadEl.style.display = 'flex';
+  unreadEl.textContent = coachUnreadCount;
+
+  coachLastNudgeTime = Date.now();
+}
+
+function coachDismissNudge(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('coach-nudge').style.display = 'none';
+}
+
+// ── Proactive nudges ──
+const PROACTIVE_NUDGES = [
+  () => {
+    const s = coachGetAppState();
+    if (s.todayFocusMin === 0) return '⏰ এখনো কোনো focus session করোনি। একটা ছোট Pomodoro শুরু করো!';
+    return null;
+  },
+  () => {
+    const s = coachGetAppState();
+    const h = new Date().getHours();
+    if (h >= 14 && h <= 15 && s.todayTopics < 2) return '📚 দুপুর হয়ে গেছে — এখনো মাত্র ' + s.todayTopics + 'টি topic। আরো একটু এগিয়ে যাও!';
+    return null;
+  },
+  () => {
+    const s = coachGetAppState();
+    if (s.streak >= 3) return '🔥 ' + s.streak + ' দিনের streak চলছে! আজও ধরে রাখো।';
+    if (s.streak === 0) return '💡 Streak শুরু করার সেরা সময় এখনই। একটা topic complete করো!';
+    return null;
+  },
+  () => {
+    const h = new Date().getHours();
+    if (h >= 21) return '🌙 রাত হয়েছে। আজকের কাজ শেষ করে তারপর ঘুমাও — half-done better than not-done।';
+    return null;
+  },
+  () => {
+    const s = coachGetAppState();
+    if (s.todayFocusMin >= 90) return '🏆 দারুণ! আজকে ' + s.todayFocusMin + ' মিনিট focus করেছ। একটু break নাও তারপর আবার।';
+    return null;
+  }
+];
+
+async function coachProactiveCheck() {
+  if (coachOpen) return;
+  if (Date.now() - coachLastNudgeTime < COACH_NUDGE_INTERVAL) return;
+
+  for (const fn of PROACTIVE_NUDGES) {
+    const msg = fn();
+    if (msg) {
+      coachShowNudge(msg);
+      return;
+    }
+  }
+
+  // If nothing matched, ask AI for a nudge
+  if (Math.random() < 0.4) {
+    try {
+      const state = coachGetAppState();
+      const prompt = `ছাত্র এখন app-এ আছে কিন্তু কোনো কাজ করছে না। State: streak=${state.streak}, todayTopics=${state.todayTopics}, focusMin=${state.todayFocusMin}। একটা ছোট (15 words max) proactive nudge দাও যা তাকে কাজে ফিরিয়ে আনবে। শুধু nudge text, কোনো extra কিছু না।`;
+      const res = await fetch('/api/ai', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens: 60,
+          system:'তুমি একজন coaching assistant। শুধু ছোট, punchy বাংলা nudge দাও।',
+          messages:[{role:'user',content:prompt}]
+        })
+      });
+      const data = await res.json();
+      const nudge = data.content.map(c=>c.text||'').join('').trim();
+      if (nudge) coachShowNudge(nudge);
+    } catch(e) {}
+  }
+}
+
+// ── Periodic reminder every N minutes ──
+async function coachPeriodicReminder() {
+  if (coachOpen) return;
+
+  const state = coachGetAppState();
+  const h = new Date().getHours();
+
+  // Only nudge during study hours (7am - 11pm)
+  if (h < 7 || h > 23) return;
+
+  try {
+    const prompt = `আমি ${state.todayFocusMin} মিনিট focus করেছি, ${state.todayTopics}টি topic করেছি, streak ${state.streak} দিন। আমাকে এখন একটা specific, actionable reminder দাও। খুব ছোট (১ বাক্য)।`;
+    const res = await fetch('/api/ai', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:60,
+        system:'তুমি strict কিন্তু caring coach। ১ বাক্যে reminder দাও।',
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const txt = data.content.map(c=>c.text||'').join('').trim();
+    if (txt) coachShowNudge(txt);
+  } catch(e) {}
+}
+
+// ── Init ──
+function coachInit() {
+  coachRenderQA();
+
+  // Show initial nudge after 3 seconds
+  setTimeout(() => {
+    const state = coachGetAppState();
+    const h = new Date().getHours();
+    const greeting = h < 12 ? 'সুপ্রভাত' : h < 17 ? 'শুভ দুপুর' : 'শুভ সন্ধ্যা';
+    coachShowNudge(`👋 ${greeting}! Coach এখানে আছি। চলো শুরু করি?`);
+  }, 3000);
+
+  // Proactive check every 10 minutes
+  setInterval(coachProactiveCheck, 10 * 60 * 1000);
+
+  // Periodic reminder every 20 minutes
+  setInterval(coachPeriodicReminder, 20 * 60 * 1000);
+
+  // Click nudge to open panel
+  document.getElementById('coach-nudge').addEventListener('click', function(e) {
+    if (!e.target.id.includes('close')) {
+      coachDismissNudge();
+      if (!coachOpen) coachTogglePanel();
+    }
+  });
+}
+
+// Wait for DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', coachInit);
+} else {
+  setTimeout(coachInit, 500);
+}
+</script>
 </body>
 </html>
