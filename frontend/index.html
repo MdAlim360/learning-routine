@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Learning Routine — Legacy Edition</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co.com/WpxFrtjK/morning-routine.png">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 <style>
 :root {
   --bg: #06070f;
@@ -42,6 +44,8 @@ body {
   min-height: 100vh;
   /* Smooth scroll on mobile */
   -webkit-overflow-scrolling: touch;
+  /* Prevent rubber-band bounce on overscroll (feels snappier) */
+  overscroll-behavior-y: contain;
 }
 
 /* Performance: isolate tab content layers */
@@ -72,6 +76,8 @@ body::before {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
 html { scroll-behavior: smooth; }
+/* Smooth momentum scroll on all scrollable elements */
+* { -webkit-overflow-scrolling: touch; }
 
 /* Global performance: only GPU-friendly transitions on hover/active states */
 button, a, input, [onclick] {
@@ -131,8 +137,6 @@ button, a, input, [onclick] {
 .plan-map-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   z-index: 9998;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
@@ -140,6 +144,8 @@ button, a, input, [onclick] {
 }
 .plan-map-overlay.visible {
   opacity: 1; pointer-events: all;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 .plan-map-card {
   background: var(--card);
@@ -324,14 +330,16 @@ button, a, input, [onclick] {
 .exam-overlay {
   position:fixed; inset:0;
   background:rgba(0,0,0,0.85);
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
   z-index:10000;
   display:flex; align-items:center; justify-content:center;
   opacity:0; pointer-events:none;
   transition:opacity .2s;
 }
-.exam-overlay.visible { opacity:1; pointer-events:all; }
+.exam-overlay.visible {
+  opacity:1; pointer-events:all;
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
 
 .exam-card {
   background:var(--card);
@@ -759,8 +767,6 @@ button, a, input, [onclick] {
 .ai-motivator-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   z-index: 9999;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
@@ -768,6 +774,8 @@ button, a, input, [onclick] {
 }
 .ai-motivator-overlay.visible {
   opacity: 1; pointer-events: all;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 .ai-motivator-card {
   background: var(--card);
@@ -1040,6 +1048,8 @@ button, a, input, [onclick] {
 
 .tab-view { display: none; }
 .tab-view.active { display: block; }
+/* Inactive tabs: skip rendering entirely so browser doesn't paint hidden content */
+.tab-view:not(.active) { content-visibility: hidden; }
 
 /* ─── SECTION LABEL ─── */
 .section-label {
@@ -1709,15 +1719,17 @@ button, a, input, [onclick] {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.78);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   display: none;
   align-items: center;
   justify-content: center;
   padding: 20px;
   z-index: 100;
 }
-.modal-overlay.visible { display: flex; }
+.modal-overlay.visible {
+  display: flex;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
 .modal {
   background: var(--card);
   border: 1px solid var(--border2);
@@ -5380,13 +5392,21 @@ window.onload=async function(){
 // ── TABS ──
 let _lastTab = 'routine';
 let _switchTabTimer = null;
+// Cache tab views and nav buttons once — avoids repeated full DOM scans on every tab switch
+let _tabViews = null;
+let _navBtns = null;
+function _initTabCache(){
+  if(!_tabViews) _tabViews = Array.from(document.querySelectorAll('.tab-view'));
+  if(!_navBtns)  _navBtns  = Array.from(document.querySelectorAll('.nav-btn'));
+}
 function switchTab(id){
   if(_lastTab === id) return; // already on this tab
+  _initTabCache();
   _lastTab = id;
-  document.querySelectorAll('.tab-view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('view-'+id).classList.add('active');
-  document.getElementById('tab-'+id).classList.add('active');
+  const activeView = 'view-'+id;
+  const activeBtn  = 'tab-'+id;
+  for(let i=0;i<_tabViews.length;i++) _tabViews[i].classList.toggle('active', _tabViews[i].id === activeView);
+  for(let i=0;i<_navBtns.length;i++)  _navBtns[i].classList.toggle('active',  _navBtns[i].id  === activeBtn);
   // Defer heavy renders to next frame so tab switch feels instant
   if(_switchTabTimer) clearTimeout(_switchTabTimer);
   _switchTabTimer = setTimeout(()=>{
