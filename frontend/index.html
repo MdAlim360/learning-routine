@@ -3258,212 +3258,200 @@ button, a, input, [onclick] {
   100% { background-position: 200% center; }
 }
 
-.fc-stacks-container { display: flex; flex-direction: column; gap: 18px; }
+/* ════════════════════════════════
+   FLASHCARD STACKS — v3 redesign
+   flat grid, no nested scroll trap
+════════════════════════════════ */
+.fc-stacks-container { display: flex; flex-direction: column; gap: 24px; }
 
-/* ── Category group ── */
+/* ── Category section ── */
 .fc-stack-cat-group {
-  background: var(--card);
+  border-radius: 20px;
+  overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 18px;
-  /* NO overflow:hidden — child scroll দরকার */
-  transition: box-shadow .3s, border-color .3s;
+  background: var(--card);
+  transition: box-shadow .3s;
 }
-.fc-stack-cat-group:hover {
-  box-shadow: 0 6px 32px rgba(124,106,247,.07);
-}
+.fc-stack-cat-group:hover { box-shadow: 0 8px 40px rgba(0,0,0,.18); }
+
 .fc-stack-cat-header {
   display: flex; align-items: center; gap: 10px;
-  padding: 14px 18px;
-  background: var(--bg3);
-  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
   cursor: pointer; user-select: none;
   transition: background .2s;
-  border-radius: 18px 18px 0 0;
+  position: relative;
 }
-.fc-stack-cat-group:not(.open) > .fc-stack-cat-header {
-  border-radius: 18px;
+.fc-stack-cat-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 20px; right: 20px;
+  height: 1px; background: var(--border);
 }
-.fc-stack-cat-header:hover { background: rgba(255,255,255,.03); }
-.fc-stack-cat-dot {
-  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
-  box-shadow: 0 0 6px currentColor;
+.fc-stack-cat-group:not(.open) .fc-stack-cat-header::after { display: none; }
+.fc-stack-cat-header:hover { background: rgba(255,255,255,.025); }
+
+/* Colored left stripe per category */
+.fc-stack-cat-stripe {
+  width: 4px; height: 28px; border-radius: 99px; flex-shrink: 0;
 }
-.fc-stack-cat-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; flex: 1; }
+.fc-stack-cat-dot { display: none; } /* kept for compat, hidden */
+.fc-stack-cat-name {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .14em; flex: 1; color: var(--text);
+}
 .fc-stack-cat-stats { display: flex; gap: 6px; align-items: center; }
-.fc-stack-cat-chevron { font-size: 11px; color: var(--muted); transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+.fc-stack-cat-chevron {
+  font-size: 10px; color: var(--muted);
+  transition: transform .3s cubic-bezier(.34,1.4,.64,1);
+}
 .fc-stack-cat-group.open .fc-stack-cat-chevron { transform: rotate(180deg); }
 
-/* Category body — padding wrapper only, no scroll */
-.fc-stack-cat-body { display: none; padding: 14px; border-radius: 0 0 18px 18px; }
+.fc-stack-cat-body { display: none; padding: 16px 16px 20px; }
 .fc-stack-cat-group.open .fc-stack-cat-body { display: block; }
 
-/* ── Subject group ── */
-.fc-stack-subj-group {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  margin-bottom: 10px;
-  /* NO overflow:hidden — it kills child scroll */
-  transition: border-color .2s;
-}
-.fc-stack-subj-group:last-child { margin-bottom: 0; }
-.fc-stack-subj-group.open { border-color: rgba(124,106,247,.18); }
-
-.fc-stack-subj-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 14px;
+/* ── Subject section — label only, no accordion box ── */
+.fc-stack-subj-label {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 4px 10px;
+  margin-top: 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
   cursor: pointer; user-select: none;
-  transition: background .15s;
-  border-bottom: 1px solid transparent;
-  /* header নিজেই top corners clip করবে */
-  border-radius: 14px 14px 0 0;
 }
-.fc-stack-subj-group:not(.open) > .fc-stack-subj-header {
-  border-radius: 14px;          /* বন্ধ থাকলে সব কোণ */
+.fc-stack-subj-label:first-child { margin-top: 0; }
+.fc-stack-subj-label-name {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .12em; color: var(--muted2); flex: 1;
+  display: flex; align-items: center; gap: 7px;
 }
-.fc-stack-subj-header:hover { background: rgba(255,255,255,.02); border-radius: inherit; }
-.fc-stack-subj-group.open .fc-stack-subj-header { border-bottom-color: var(--border); }
-.fc-stack-subj-name { font-size: 12px; font-weight: 600; color: var(--muted2); flex: 1; display: flex; align-items: center; gap: 7px; }
-.fc-stack-subj-chevron { font-size: 10px; color: var(--muted); transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
-.fc-stack-subj-group.open .fc-stack-subj-chevron { transform: rotate(180deg); }
-.fc-stack-subj-body { display: none; }
-.fc-stack-subj-group.open .fc-stack-subj-body {
-  display: flex; flex-direction: column; gap: 10px;
-  max-height: 480px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(124,106,247,.35) transparent;
-  padding: 10px 12px 14px;
-  border-radius: 0 0 14px 14px;   /* body নিজেই bottom corners */
+.fc-stack-subj-label-name i { font-size: 9px; opacity: .5; }
+.fc-stack-subj-chevron {
+  font-size: 9px; color: var(--muted);
+  transition: transform .25s;
 }
+.fc-stack-subj-section.open .fc-stack-subj-chevron { transform: rotate(180deg); }
 
-/* ── Topic stack card — color injected via JS inline style ── */
+/* ── Grid of topic cards ── */
+.fc-stack-subj-grid {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.fc-stack-subj-section.open .fc-stack-subj-grid { display: grid; }
+
+/* ── Individual topic card ── */
 .fc-topic-stack {
-  background: var(--bg);
-  border: 1px solid color-mix(in srgb, var(--fc-c1, #7c6af7) 22%, transparent);
-  border-radius: 14px;
-  padding: 14px 16px;
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--fc-c1, #7c6af7) 7%, var(--bg2)),
+    color-mix(in srgb, var(--fc-c2, #3ecfaa) 4%, var(--bg2))
+  );
+  border: 1px solid color-mix(in srgb, var(--fc-c1, #7c6af7) 25%, transparent);
+  border-radius: 16px;
+  padding: 0;
   position: relative;
-  transition: border-color .25s, box-shadow .25s, transform .2s;
   cursor: pointer;
   overflow: hidden;
-  animation: fcStackSlideIn .3s ease both;
-  /* subtle tinted background */
-  background: linear-gradient(145deg,
-    color-mix(in srgb, var(--fc-c1, #7c6af7) 5%, var(--bg)),
-    color-mix(in srgb, var(--fc-c2, #3ecfaa) 3%, var(--bg))
-  );
+  display: flex; flex-direction: column;
+  transition: transform .2s cubic-bezier(.34,1.4,.64,1), box-shadow .2s, border-color .2s;
+  animation: fcStackSlideIn .25s ease both;
 }
-
-/* Colorful top accent bar */
-.fc-topic-stack::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 3px;
-  border-radius: 14px 14px 0 0;
-  background: linear-gradient(90deg,
-    var(--fc-c1, #7c6af7),
-    var(--fc-c2, #3ecfaa));
-}
-
-/* Stacked paper shadow — color-tinted */
-.fc-topic-stack::after {
-  content: '';
-  position: absolute;
-  left: 10px; right: 10px; bottom: -5px;
-  height: 100%; border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--fc-c1, #7c6af7) 18%, transparent);
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--fc-c1, #7c6af7) 8%, transparent),
-    transparent);
-  z-index: -1;
-}
-
 .fc-topic-stack:hover {
-  border-color: color-mix(in srgb, var(--fc-c1, #7c6af7) 45%, transparent);
+  transform: translateY(-3px) scale(1.01);
+  border-color: color-mix(in srgb, var(--fc-c1, #7c6af7) 55%, transparent);
   box-shadow:
-    0 6px 28px color-mix(in srgb, var(--fc-c1, #7c6af7) 15%, transparent),
-    0 2px 8px rgba(0,0,0,.2);
-  transform: translateY(-2px);
+    0 8px 32px color-mix(in srgb, var(--fc-c1, #7c6af7) 18%, transparent),
+    0 2px 8px rgba(0,0,0,.25);
 }
-.fc-topic-stack:active { transform: translateY(0) scale(.99); }
+.fc-topic-stack:active { transform: scale(.98); }
 
-/* Name shimmer on hover */
-.fc-topic-stack:hover .fc-topic-stack-name {
-  background: linear-gradient(90deg,
-    var(--text) 0%,
-    var(--fc-c1, #7c6af7) 40%,
-    var(--fc-c2, #3ecfaa) 60%,
-    var(--text) 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: fcShimmer .7s linear;
+/* Top gradient bar */
+.fc-topic-stack-bar {
+  height: 4px; width: 100%;
+  background: linear-gradient(90deg, var(--fc-c1, #7c6af7), var(--fc-c2, #3ecfaa));
+  flex-shrink: 0;
+}
+
+/* Card body */
+.fc-topic-stack-body {
+  padding: 14px 14px 12px;
+  display: flex; flex-direction: column; gap: 10px; flex: 1;
 }
 
 .fc-topic-stack-top {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
-  margin-bottom: 10px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
 }
 .fc-topic-stack-name {
-  font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; flex: 1;
+  font-size: 13px; font-weight: 700; color: var(--text);
+  line-height: 1.35; flex: 1;
 }
 .fc-topic-stack-count {
-  display: flex; align-items: center; gap: 5px;
-  background: color-mix(in srgb, var(--fc-c1, #7c6af7) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--fc-c1, #7c6af7) 28%, transparent);
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 800;
+  padding: 3px 9px; border-radius: 99px; flex-shrink: 0;
+  background: color-mix(in srgb, var(--fc-c1, #7c6af7) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fc-c1, #7c6af7) 30%, transparent);
   color: var(--fc-c1, var(--accent2));
-  font-size: 11px; font-weight: 700;
-  padding: 4px 11px; border-radius: 99px; flex-shrink: 0;
 }
-.fc-topic-stack-count i { font-size: 9px; }
+.fc-topic-stack-count i { font-size: 8px; }
 
+/* Progress bar */
+.fc-topic-stack-prog-track {
+  height: 4px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden;
+}
+.fc-topic-stack-prog-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--fc-c1, #7c6af7), var(--fc-c2, #3ecfaa));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--fc-c1, #7c6af7) 50%, transparent);
+  transition: width .5s ease;
+}
+
+/* Status pills row */
 .fc-topic-stack-meta {
-  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
-  margin-bottom: 10px;
+  display: flex; gap: 5px; flex-wrap: wrap;
 }
 .fc-topic-stack-pill {
-  font-size: 9px; font-weight: 600; padding: 2px 8px; border-radius: 5px;
-  white-space: nowrap;
+  font-size: 9px; font-weight: 700; padding: 2px 7px;
+  border-radius: 5px; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 3px;
 }
-.fc-stack-pill-due     { background: rgba(124,106,247,.12); color: var(--accent2); border: 1px solid rgba(124,106,247,.2); }
-.fc-stack-pill-mastered{ background: rgba(212,168,67,.1); color: var(--gold2); border: 1px solid rgba(212,168,67,.15); }
-.fc-stack-pill-new     { background: rgba(62,207,170,.08); color: var(--teal); border: 1px solid rgba(62,207,170,.12); }
-.fc-stack-pill-all     { background: rgba(255,255,255,.05); color: var(--muted2); }
+.fc-stack-pill-due      { background: rgba(124,106,247,.14); color: var(--accent2); border: 1px solid rgba(124,106,247,.22); }
+.fc-stack-pill-mastered { background: rgba(212,168,67,.12);  color: var(--gold2);   border: 1px solid rgba(212,168,67,.18); }
+.fc-stack-pill-new      { background: rgba(62,207,170,.1);   color: var(--teal);    border: 1px solid rgba(62,207,170,.16); }
+.fc-stack-pill-all      { background: rgba(255,255,255,.06);  color: var(--muted2); }
 
-.fc-topic-stack-bar-wrap { margin-bottom: 10px; }
-.fc-topic-stack-bar-track { height: 5px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
-.fc-topic-stack-bar-fill {
-  height: 100%; border-radius: 99px;
-  background: linear-gradient(90deg, var(--fc-c1, var(--accent)), var(--fc-c2, var(--teal)));
-  transition: width .6s cubic-bezier(0.4,0,0.2,1);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--fc-c1, var(--accent)) 40%, transparent);
+/* Action buttons */
+.fc-topic-stack-actions {
+  display: flex; gap: 6px; margin-top: auto;
 }
-
-.fc-topic-stack-actions { display: flex; gap: 8px; }
 .fc-stack-review-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-  background: color-mix(in srgb, var(--fc-c1, #7c6af7) 13%, transparent);
-  border: 1px solid color-mix(in srgb, var(--fc-c1, #7c6af7) 28%, transparent);
-  color: var(--fc-c1, var(--accent2));
-  border-radius: 10px; padding: 8px 14px;
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+  border-radius: 10px; padding: 8px 10px;
   font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
-  transition: background .2s, transform .1s, box-shadow .2s;
+  transition: background .15s, transform .1s, box-shadow .15s;
+  border: 1px solid color-mix(in srgb, var(--fc-c1, #7c6af7) 30%, transparent);
+  background: color-mix(in srgb, var(--fc-c1, #7c6af7) 14%, transparent);
+  color: var(--fc-c1, var(--accent2));
 }
 .fc-stack-review-btn:hover {
-  background: color-mix(in srgb, var(--fc-c1, #7c6af7) 22%, transparent);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--fc-c1, #7c6af7) 20%, transparent);
+  background: color-mix(in srgb, var(--fc-c1, #7c6af7) 25%, transparent);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--fc-c1, #7c6af7) 22%, transparent);
 }
-.fc-stack-review-btn:active { transform: scale(.97); }
+.fc-stack-review-btn:active { transform: scale(.96); }
 .fc-stack-review-btn.all-done {
-  background: rgba(62,207,170,.08); border-color: rgba(62,207,170,.2); color: var(--teal);
+  background: rgba(62,207,170,.09); border-color: rgba(62,207,170,.22); color: var(--teal);
 }
-.fc-stack-review-btn.all-done:hover { background: rgba(62,207,170,.15); }
+.fc-stack-review-btn.all-done:hover { background: rgba(62,207,170,.18); }
+.fc-stack-btn-all {
+  flex: none; padding: 8px 11px;
+  background: rgba(77,184,240,.09);
+  border: 1px solid rgba(77,184,240,.2);
+  color: var(--sky);
+  border-radius: 10px;
+  font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  transition: background .15s;
+}
+.fc-stack-btn-all:hover { background: rgba(77,184,240,.18); }
 
 /* Stack review mode overlay header */
 .fc-stack-review-header {
@@ -7526,7 +7514,8 @@ function fcStacksRender(){
 
     html += `<div class="fc-stack-cat-group open">
       <div class="fc-stack-cat-header" onclick="this.parentElement.classList.toggle('open')">
-        <div class="fc-stack-cat-dot" style="background:${dotColor}"></div>
+        <div class="fc-stack-cat-stripe" style="background:linear-gradient(180deg,${dotColor},${dotColor}88)"></div>
+        <div class="fc-stack-cat-dot"></div>
         <div class="fc-stack-cat-name" style="color:${dotColor}">${cat}</div>
         <div class="fc-stack-cat-stats">
           <span class="fc-lib-stat-pill fc-lib-stat-total">${catTotal} cards</span>
@@ -7537,7 +7526,7 @@ function fcStacksRender(){
       </div>
       <div class="fc-stack-cat-body">`;
 
-    Object.entries(groups[cat]).forEach(([sub, topicsObj]) => {
+    Object.entries(groups[cat]).forEach(([sub, topicsObj], subjIdx) => {
       if(filterSub && sub !== filterSub) return;
 
       let subjTotal = 0, subjDue = 0;
@@ -7546,18 +7535,23 @@ function fcStacksRender(){
         subjDue   += cards.filter(c => c.nextDue && c.nextDue <= today).length;
       });
 
-      html += `<div class="fc-stack-subj-group open">
-        <div class="fc-stack-subj-header" onclick="this.parentElement.classList.toggle('open')">
-          <div class="fc-stack-subj-name">
-            <i class="fa-solid fa-book" style="font-size:10px;opacity:.5"></i>${sub}
+      const sectionId = `fcss-${Math.random().toString(36).slice(2)}`;
+      html += `<div class="fc-stack-subj-section open" id="${sectionId}">
+        <div class="fc-stack-subj-label" onclick="
+          var s=this.parentElement;
+          s.classList.toggle('open');
+          this.querySelector('.fc-stack-subj-chevron').style.transform=s.classList.contains('open')?'rotate(180deg)':'';
+        ">
+          <div class="fc-stack-subj-label-name">
+            <i class="fa-solid fa-folder-open"></i>${sub}
             <span class="fc-lib-subj-count">${subjTotal}</span>
             ${subjDue?`<span class="fc-lib-stat-pill fc-lib-stat-due" style="font-size:8px">${subjDue} due</span>`:''}
           </div>
-          <i class="fa-solid fa-chevron-down fc-stack-subj-chevron"></i>
+          <i class="fa-solid fa-chevron-down fc-stack-subj-chevron" style="font-size:9px;color:var(--muted);transform:rotate(180deg);transition:transform .25s"></i>
         </div>
-        <div class="fc-stack-subj-body">`;
+        <div class="fc-stack-subj-grid">`;
 
-      Object.entries(topicsObj).forEach(([topic, cards]) => {
+      Object.entries(topicsObj).forEach(([topic, cards], ti) => {
         const total    = cards.length;
         const due      = cards.filter(c => c.nextDue && c.nextDue <= today).length;
         const mastered = cards.filter(c => c.reps >= 5 && c.interval >= 21).length;
@@ -7565,53 +7559,43 @@ function fcStacksRender(){
         const mastPct  = total > 0 ? Math.round(mastered/total*100) : 0;
         const topicKey = encodeURIComponent(cat + '||' + sub + '||' + topic);
 
-        // ── Dynamic color from topic name (djb2 hash → palette) ──
         const [c1, c2] = fcTopicColor(topic);
-        // hex → rgba helper for inline styles
         function hexA(hex, a) {
           const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
           return `rgba(${r},${g},${b},${a})`;
         }
-        const cardStyle  = `--fc-c1:${c1};--fc-c2:${c2};--fc-glow:${hexA(c1,.12)};`;
-        const barStyle   = `background:linear-gradient(90deg,${c1},${c2});box-shadow:0 0 10px ${hexA(c1,.35)};`;
-        const countStyle = `background:linear-gradient(135deg,${hexA(c1,.18)},${hexA(c2,.08)});border-color:${hexA(c1,.35)};color:${c1};`;
+        const cardStyle = `--fc-c1:${c1};--fc-c2:${c2};`;
 
         let statusPills = '';
-        if(due)      statusPills += `<span class="fc-topic-stack-pill fc-stack-pill-due"><i class="fa-solid fa-clock" style="font-size:8px"></i> ${due} due</span>`;
-        if(mastered) statusPills += `<span class="fc-topic-stack-pill fc-stack-pill-mastered">⭐ ${mastered} mastered</span>`;
+        if(due)      statusPills += `<span class="fc-topic-stack-pill fc-stack-pill-due"><i class="fa-solid fa-clock"></i> ${due} due</span>`;
+        if(mastered) statusPills += `<span class="fc-topic-stack-pill fc-stack-pill-mastered">⭐ ${mastered}</span>`;
         if(newCards) statusPills += `<span class="fc-topic-stack-pill fc-stack-pill-new">✦ ${newCards} new</span>`;
 
         const btnLabel = due > 0
-          ? `<i class="fa-solid fa-play"></i> ${due}টি Review করো`
+          ? `<i class="fa-solid fa-play"></i> ${due}টি Review`
           : `<i class="fa-solid fa-check"></i> সব done`;
         const btnClass = due > 0 ? '' : 'all-done';
-        const btnStyle = btnClass === 'all-done'
-          ? ''
-          : `background:linear-gradient(135deg,${hexA(c1,.16)},${hexA(c2,.08)});border-color:${hexA(c1,.38)};color:${c1};`;
 
-        html += `<div class="fc-topic-stack" style="${cardStyle}" onclick="fcStackStartReview('${topicKey}')">
-          <div class="fc-topic-stack-top">
-            <div class="fc-topic-stack-name">${topic}</div>
-            <div class="fc-topic-stack-count" style="${countStyle}"><i class="fa-solid fa-layer-group"></i> ${total}</div>
-          </div>
-          <div class="fc-topic-stack-meta">${statusPills || '<span class="fc-topic-stack-pill fc-stack-pill-all">সব cards</span>'}</div>
-          <div class="fc-topic-stack-bar-wrap">
-            <div class="fc-topic-stack-bar-track">
-              <div class="fc-topic-stack-bar-fill" style="width:${mastPct}%;${barStyle}"></div>
+        html += `<div class="fc-topic-stack" style="${cardStyle};animation-delay:${ti*35}ms" onclick="fcStackStartReview('${topicKey}')">
+          <div class="fc-topic-stack-bar"></div>
+          <div class="fc-topic-stack-body">
+            <div class="fc-topic-stack-top">
+              <div class="fc-topic-stack-name">${topic}</div>
+              <div class="fc-topic-stack-count"><i class="fa-solid fa-layer-group"></i> ${total}</div>
             </div>
-          </div>
-          <div class="fc-topic-stack-actions">
-            <button class="fc-stack-review-btn ${btnClass}" style="${btnStyle}" onclick="event.stopPropagation();fcStackStartReview('${topicKey}')">
-              ${btnLabel}
-            </button>
-            <button class="fc-stack-review-btn" style="flex:none;padding:8px 12px;background:rgba(77,184,240,.08);border-color:rgba(77,184,240,.18);color:var(--sky)" onclick="event.stopPropagation();fcStackStartReview('${topicKey}',true)" title="সব cards review করো">
-              <i class="fa-solid fa-layer-group"></i> All
-            </button>
+            <div class="fc-topic-stack-prog-track">
+              <div class="fc-topic-stack-prog-fill" style="width:${mastPct}%"></div>
+            </div>
+            <div class="fc-topic-stack-meta">${statusPills || '<span class="fc-topic-stack-pill fc-stack-pill-all">সব cards</span>'}</div>
+            <div class="fc-topic-stack-actions">
+              <button class="fc-stack-review-btn ${btnClass}" onclick="event.stopPropagation();fcStackStartReview('${topicKey}')">${btnLabel}</button>
+              <button class="fc-stack-btn-all" onclick="event.stopPropagation();fcStackStartReview('${topicKey}',true)" title="সব cards"><i class="fa-solid fa-layer-group"></i></button>
+            </div>
           </div>
         </div>`;
       });
 
-      html += `</div></div>`; // subj-body, subj-group
+      html += `</div></div>`; // subj-grid, subj-section
     });
 
     html += `</div></div>`; // cat-body, cat-group
