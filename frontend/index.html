@@ -3260,11 +3260,12 @@ button, a, input, [onclick] {
 
 .fc-stacks-container { display: flex; flex-direction: column; gap: 18px; }
 
+/* ── Category group ── */
 .fc-stack-cat-group {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 18px;
-  overflow: hidden;
+  /* NO overflow:hidden — child scroll দরকার */
   transition: box-shadow .3s, border-color .3s;
 }
 .fc-stack-cat-group:hover {
@@ -3277,6 +3278,10 @@ button, a, input, [onclick] {
   border-bottom: 1px solid var(--border);
   cursor: pointer; user-select: none;
   transition: background .2s;
+  border-radius: 18px 18px 0 0;
+}
+.fc-stack-cat-group:not(.open) > .fc-stack-cat-header {
+  border-radius: 18px;
 }
 .fc-stack-cat-header:hover { background: rgba(255,255,255,.03); }
 .fc-stack-cat-dot {
@@ -3288,25 +3293,17 @@ button, a, input, [onclick] {
 .fc-stack-cat-chevron { font-size: 11px; color: var(--muted); transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
 .fc-stack-cat-group.open .fc-stack-cat-chevron { transform: rotate(180deg); }
 
-.fc-stack-cat-body { display: none; padding: 14px; }
-.fc-stack-cat-group.open .fc-stack-cat-body {
-  display: block;
-  max-height: none;
-  overflow-y: visible;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(124,106,247,.2) transparent;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
+/* Category body — padding wrapper only, no scroll */
+.fc-stack-cat-body { display: none; padding: 14px; border-radius: 0 0 18px 18px; }
+.fc-stack-cat-group.open .fc-stack-cat-body { display: block; }
 
-/* Subject level */
+/* ── Subject group ── */
 .fc-stack-subj-group {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 14px;
   margin-bottom: 10px;
-  overflow: hidden;
+  /* NO overflow:hidden — it kills child scroll */
   transition: border-color .2s;
 }
 .fc-stack-subj-group:last-child { margin-bottom: 0; }
@@ -3318,23 +3315,30 @@ button, a, input, [onclick] {
   cursor: pointer; user-select: none;
   transition: background .15s;
   border-bottom: 1px solid transparent;
+  /* header নিজেই top corners clip করবে */
+  border-radius: 14px 14px 0 0;
 }
-.fc-stack-subj-header:hover { background: rgba(255,255,255,.02); }
-.fc-stack-subj-group.open .fc-stack-subj-header { border-color: var(--border); }
+.fc-stack-subj-group:not(.open) > .fc-stack-subj-header {
+  border-radius: 14px;          /* বন্ধ থাকলে সব কোণ */
+}
+.fc-stack-subj-header:hover { background: rgba(255,255,255,.02); border-radius: inherit; }
+.fc-stack-subj-group.open .fc-stack-subj-header { border-bottom-color: var(--border); }
 .fc-stack-subj-name { font-size: 12px; font-weight: 600; color: var(--muted2); flex: 1; display: flex; align-items: center; gap: 7px; }
 .fc-stack-subj-chevron { font-size: 10px; color: var(--muted); transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
 .fc-stack-subj-group.open .fc-stack-subj-chevron { transform: rotate(180deg); }
-.fc-stack-subj-body { display: none; padding: 10px 12px; }
+.fc-stack-subj-body { display: none; }
 .fc-stack-subj-group.open .fc-stack-subj-body {
   display: flex; flex-direction: column; gap: 10px;
-  max-height: none;
-  overflow-y: visible;
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   scroll-behavior: smooth;
   scrollbar-width: thin;
-  scrollbar-color: rgba(124,106,247,.2) transparent;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding-right: 6px;
+  scrollbar-color: rgba(124,106,247,.35) transparent;
+  padding: 10px 12px 14px;
+  border-radius: 0 0 14px 14px;   /* body নিজেই bottom corners */
 }
 
 /* ── Topic stack card — color injected via JS inline style ── */
