@@ -4253,6 +4253,16 @@ body::before {
           <button class="exam-num-btn" onclick="examAdjQ(+1)">+</button>
         </div>
       </div>
+      <div class="exam-config-row" style="margin-top:10px">
+        <div>
+          <div class="exam-config-label">প্রশ্নের ভাষা</div>
+          <div class="exam-config-sub">বাংলা নাকি English এ প্রশ্ন চাও?</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button id="exam-lang-bn" onclick="examSetLang('bn')" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(124,106,247,.4);background:rgba(124,106,247,.2);color:var(--accent2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">বাংলা</button>
+          <button id="exam-lang-en" onclick="examSetLang('en')" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">English</button>
+        </div>
+      </div>
 
       <!-- Custom questions area (hidden for auto) -->
       <div id="exam-custom-area" style="display:none">
@@ -6938,6 +6948,7 @@ const EXAM_KEY = 'exam_scores_v1';
 let examState = {
   topicId: null, topicName: '', subject: '', category: '',
   mode: 'auto',         // 'auto' | 'custom'
+  lang: 'bn',           // 'bn' | 'en'
   qCount: 5,
   customQs: [],         // [{q, correct, wrongs:[]}]
   questions: [],        // [{q, options:[{text,correct}], explain}]
@@ -7097,6 +7108,19 @@ async function examStart(){
   }
 }
 
+
+function examSetLang(l){
+  examState.lang = l;
+  const bn = document.getElementById('exam-lang-bn');
+  const en = document.getElementById('exam-lang-en');
+  if(l==='bn'){
+    bn.style.background='rgba(124,106,247,.2)'; bn.style.borderColor='rgba(124,106,247,.4)'; bn.style.color='var(--accent2)';
+    en.style.background='transparent'; en.style.borderColor='rgba(255,255,255,.1)'; en.style.color='var(--muted2)';
+  } else {
+    en.style.background='rgba(62,207,170,.15)'; en.style.borderColor='rgba(62,207,170,.35)'; en.style.color='var(--teal)';
+    bn.style.background='transparent'; bn.style.borderColor='rgba(255,255,255,.1)'; bn.style.color='var(--muted2)';
+  }
+}
 async function examFetchAIQuestions(){
   const n = examState.qCount;
   const topic = examState.topicName;
@@ -7655,13 +7679,22 @@ async function aimForceMode(){
   }
 }
 
+
+function formatAIMsg(text){
+  // newline → <br>
+  let t = text.replace(/\n/g, '<br>');
+  // **bold** → <strong>
+  t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Add some spacing for readability
+  return '<span style="line-height:1.8;display:block">'+t+'</span>';
+}
 function aimAddMsg(type, text){
   const chatBox = document.getElementById('aim-chat-box');
   const div = document.createElement('div');
   div.className = 'aim-msg';
   const now = new Date().toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});
   div.innerHTML = `<div class="aim-msg-avatar ai"><i class="fa-solid fa-robot"></i></div>
-    <div><div class="aim-msg-bubble ai-bubble">${text}</div><div class="aim-msg-time">${now}</div></div>`;
+    <div><div class="aim-msg-bubble ai-bubble">${formatAIMsg(text)}</div><div class="aim-msg-time">${now}</div></div>`;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -7672,7 +7705,7 @@ function aimAddForceMsg(text){
   div.className = 'aim-msg';
   const now = new Date().toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});
   div.innerHTML = `<div class="aim-msg-avatar ai" style="background:rgba(224,90,122,.2);border-color:rgba(224,90,122,.3);color:var(--rose)"><i class="fa-solid fa-bolt"></i></div>
-    <div><div class="aim-msg-bubble force-bubble">⚡ ${text}</div><div class="aim-msg-time">${now}</div></div>`;
+    <div><div class="aim-msg-bubble force-bubble">⚡ ${formatAIMsg(text)}</div><div class="aim-msg-time">${now}</div></div>`;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -7711,7 +7744,7 @@ async function aimGenerateAIReport(type='weekly'){
       })
     });
     const data = await res.json();
-    el.innerHTML = data.content.map(c=>c.text||'').join('');
+    el.innerHTML = formatAIMsg(data.content.map(c=>c.text||'').join(''));
   } catch(e){
     el.innerHTML = 'AI report এখন available নেই। পরে try করো।';
   }
