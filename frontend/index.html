@@ -1774,6 +1774,84 @@ button, a, input, [onclick] {
 .mc-danger-icon i { animation: bounce 1.5s ease infinite; }
 @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
 
+/* ─── CUSTOM DIALOG (alert / confirm / prompt) ─── */
+#cdialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 99999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+#cdialog-overlay.visible { opacity: 1; pointer-events: all; }
+
+#cdialog-box {
+  background: var(--card);
+  border-radius: 24px;
+  width: 100%; max-width: 380px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06) inset;
+  transform: scale(.92) translateY(16px);
+  transition: transform .3s cubic-bezier(.34,1.3,.64,1);
+  position: relative;
+}
+#cdialog-overlay.visible #cdialog-box { transform: scale(1) translateY(0); }
+
+/* top glow bar — color changes per type */
+#cdialog-topbar {
+  height: 3px; width: 100%;
+}
+#cdialog-inner { padding: 28px 28px 24px; }
+
+#cdialog-icon {
+  width: 52px; height: 52px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 18px;
+}
+#cdialog-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 19px; font-weight: 400; color: var(--text);
+  line-height: 1.35; margin-bottom: 6px;
+}
+#cdialog-msg {
+  font-size: 12px; color: var(--muted); line-height: 1.7;
+  margin-bottom: 0;
+}
+#cdialog-input-wrap { margin-top: 18px; }
+#cdialog-input {
+  width: 100%; background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 12px; padding: 12px 16px;
+  color: var(--text); font-family: inherit; font-size: 13px;
+  outline: none; transition: border-color .2s;
+}
+#cdialog-input:focus { border-color: rgba(124,106,247,.55); box-shadow: 0 0 0 3px rgba(124,106,247,.1); }
+#cdialog-input::placeholder { color: var(--muted); }
+
+#cdialog-actions {
+  display: flex; gap: 10px; justify-content: flex-end;
+  margin-top: 24px; padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.cdialog-btn {
+  border: none; border-radius: 12px;
+  padding: 10px 22px; font-family: inherit; font-size: 13px;
+  font-weight: 700; cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  display: flex; align-items: center; gap: 7px;
+}
+.cdialog-btn:hover { opacity: .88; }
+.cdialog-btn:active { transform: scale(.96); }
+#cdialog-cancel {
+  background: var(--bg2); color: var(--muted2);
+  border: 1px solid var(--border);
+}
+#cdialog-cancel:hover { color: var(--text); background: var(--bg3); }
+#cdialog-ok { color: #fff; }
+
 /* ─── TOAST ─── */
 #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; width: 340px; pointer-events: none; }
 .toast {
@@ -5563,7 +5641,7 @@ async function handleInject(){
   const ci=document.getElementById('inj-cat').value;
   const sub=document.getElementById('inj-sub').value;
   const topic=document.getElementById('inj-topic').value.trim();
-  if(!sub||sub.startsWith('—')||!topic){alert('Please select a subject and enter a topic description.');return;}
+  if(!sub||sub.startsWith('—')||!topic){cAlert('Subject এবং Topic বেছে নাও।',{title:'কিছু বাকি',type:'warning'});return;}
   const rec={id:Date.now(),date:activeDate,originDate:activeDate,completionDate:null,category:cats[ci],subject:sub,topicName:topic,noteUrl:null,status:'Pending',reviewsDone:[],reviewHistoryStamps:{},customRevPendingOn:null,customReviewHistoryDates:[]};
   document.getElementById('inj-topic').value='';
   if(!dbTopics[activeDate]) dbTopics[activeDate]=[];
@@ -7303,7 +7381,7 @@ function fcModalCancel(){
 function fcModalAddCard(){
   const q = document.getElementById('fc-q-input').value.trim();
   const a = document.getElementById('fc-a-input').value.trim();
-  if(!q || !a){ alert('প্রশ্ন ও উত্তর উভয়ই লিখুন।'); return; }
+  if(!q || !a){ cAlert('প্রশ্ন এবং উত্তর দুটোই লিখতে হবে।',{title:'অসম্পূর্ণ',type:'warning'}); return; }
   fcModalTempCards.push({ q, a });
   document.getElementById('fc-q-input').value = '';
   document.getElementById('fc-a-input').value = '';
@@ -7344,7 +7422,7 @@ function fcSaveStandaloneCard(){
   const topic = document.getElementById('fc-add-topic').value.trim();
   const q = document.getElementById('fc-add-q').value.trim();
   const a = document.getElementById('fc-add-a').value.trim();
-  if(!q || !a){ alert('প্রশ্ন ও উত্তর লিখুন।'); return; }
+  if(!q || !a){ cAlert('প্রশ্ন এবং উত্তর দুটোই লিখতে হবে।',{title:'অসম্পূর্ণ',type:'warning'}); return; }
   const card = {
     id: Date.now(), q, a,
     category: cats[ci]||'', subject: sub, topicName: topic||sub,
@@ -7939,8 +8017,9 @@ function fcLibRender(){
   wrap.innerHTML = html;
 }
 
-function fcLibDelete(id){
-  if(!confirm('এই card delete করবে?')) return;
+async function fcLibDelete(id){
+  const ok = await cConfirm('এই card চিরতরে মুছে যাবে।', {title:'Card Delete করবে?', type:'danger'});
+  if(!ok) return;
   fcCards = fcCards.filter(c=>c.id!==id);
   fcSave(fcCards);
   fcUpdateNavBadge();
@@ -8311,8 +8390,8 @@ async function wgSaveGoal(){
   const sub  = document.getElementById('wg-f-sub').value || '';
   const total = parseInt(document.getElementById('wg-f-target').value)||0;
   const weeks = parseInt(document.getElementById('wg-f-weeks').value)||4;
-  if(!name){ alert('Goal-এর নাম দাও।'); return; }
-  if(total<1){ alert('কতটি topic শেষ করবে সেটা দাও।'); return; }
+  if(!name){ await cAlert('Goal এর নাম লিখতে ভুলে গেছো!', {title:'নাম দাও', type:'warning'}); return; }
+  if(total<1){ await cAlert('কতটি topic শেষ করবে সেটা ঠিক করো।', {title:'Target দাও', type:'warning'}); return; }
 
   // Collect weekly targets from planner inputs
   const weeklyTargets = [];
@@ -8351,7 +8430,8 @@ async function wgSaveGoal(){
 }
 
 async function wgDeleteGoal(id){
-  if(!confirm('এই goal delete করবে?')) return;
+  const ok = await cConfirm('এই goal চিরতরে মুছে যাবে, undo হবে না।', {title:'Goal Delete করবে?', type:'danger'});
+  if(!ok) return;
   wgGoals = wgGoals.filter(g=>g.id!==id);
   await wgSave();
   wgRender();
@@ -9031,7 +9111,7 @@ function examAddCustomQ(){
   const w1 = document.getElementById('exam-cq-w1').value.trim();
   const w2 = document.getElementById('exam-cq-w2').value.trim();
   const w3 = document.getElementById('exam-cq-w3').value.trim();
-  if(!q||!a){ alert('প্রশ্ন ও সঠিক উত্তর লিখুন।'); return; }
+  if(!q||!a){ cAlert('প্রশ্ন ও সঠিক উত্তর লিখতে হবে।',{title:'অসম্পূর্ণ',type:'warning'}); return; }
   examState.customQs.push({ q, correct:a, wrongs:[w1,w2,w3].filter(Boolean) });
   ['exam-cq-q','exam-cq-a','exam-cq-w1','exam-cq-w2','exam-cq-w3'].forEach(id=>{ document.getElementById(id).value=''; });
   examCustomRender();
@@ -9065,7 +9145,7 @@ async function examStart(){
   examState.currentQ = 0;
 
   if(examState.mode==='custom'){
-    if(!examState.customQs.length){ alert('অন্তত একটি প্রশ্ন যোগ করো।'); return; }
+    if(!examState.customQs.length){ cAlert('অন্তত একটি প্রশ্ন যোগ করো।',{title:'প্রশ্ন নেই',type:'warning'}); return; }
     // Build question objects from custom
     examState.questions = examState.customQs.map(cq=>{
       // Build options: correct + wrongs shuffled, pad with placeholders if needed
@@ -9313,7 +9393,7 @@ function examGetBadgeHTML(topicId){
 
 function examShowHistory(topicId){
   const scores = examScores[topicId]||[];
-  if(!scores.length){ alert('কোনো exam record নেই।'); return; }
+  if(!scores.length){ cAlert('এখনো কোনো exam দেওয়া হয়নি।',{title:'Record নেই',type:'info'}); return; }
   const rows = scores.map(s=>{
     const g = examGrade(s.pct);
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
@@ -10585,6 +10665,207 @@ if (document.readyState === 'loading') {
 } else {
   setTimeout(coachInit, 500);
 }
+</script>
+<!-- ══ CUSTOM DIALOG ══ -->
+<div id="cdialog-overlay">
+  <div id="cdialog-box">
+    <div id="cdialog-topbar"></div>
+    <div id="cdialog-inner">
+      <div id="cdialog-icon"></div>
+      <div id="cdialog-title"></div>
+      <div id="cdialog-msg"></div>
+      <div id="cdialog-input-wrap" style="display:none">
+        <input id="cdialog-input" type="text" autocomplete="off" />
+      </div>
+      <div id="cdialog-actions">
+        <button class="cdialog-btn" id="cdialog-cancel">বাতিল</button>
+        <button class="cdialog-btn" id="cdialog-ok">ঠিক আছে</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Custom Dialog System ──────────────────────────────
+   Replaces browser alert(), confirm(), prompt()
+   Usage:
+     await cAlert('message', { title, type })
+     await cConfirm('message', { title, type })
+     await cPrompt('message', { title, placeholder, defaultVal })
+   Types: 'info' | 'success' | 'warning' | 'danger'
+────────────────────────────────────────────────────── */
+(function(){
+  const overlay  = document.getElementById('cdialog-overlay');
+  const box      = document.getElementById('cdialog-box');
+  const topbar   = document.getElementById('cdialog-topbar');
+  const iconEl   = document.getElementById('cdialog-icon');
+  const titleEl  = document.getElementById('cdialog-title');
+  const msgEl    = document.getElementById('cdialog-msg');
+  const inputWrap= document.getElementById('cdialog-input-wrap');
+  const inputEl  = document.getElementById('cdialog-input');
+  const cancelBtn= document.getElementById('cdialog-cancel');
+  const okBtn    = document.getElementById('cdialog-ok');
+
+  const TYPES = {
+    info:    { icon:'fa-circle-info',       color:'#4db8f0', grad:'linear-gradient(90deg,#4db8f0,#7c6af7)', bg:'rgba(77,184,240,.12)',  okBg:'linear-gradient(135deg,#4db8f0,#3a8fcf)' },
+    success: { icon:'fa-circle-check',      color:'#3ecfaa', grad:'linear-gradient(90deg,#3ecfaa,#4db8f0)', bg:'rgba(62,207,170,.12)',  okBg:'linear-gradient(135deg,#3ecfaa,#2aab87)' },
+    warning: { icon:'fa-triangle-exclamation', color:'#d4a843', grad:'linear-gradient(90deg,#d4a843,#e05a7a)', bg:'rgba(212,168,67,.12)', okBg:'linear-gradient(135deg,#d4a843,#b8860b)' },
+    danger:  { icon:'fa-circle-exclamation', color:'#e05a7a', grad:'linear-gradient(90deg,#e05a7a,#a695ff)', bg:'rgba(224,90,122,.12)', okBg:'linear-gradient(135deg,#e05a7a,#b73057)' },
+    prompt:  { icon:'fa-pen-to-square',     color:'#7c6af7', grad:'linear-gradient(90deg,#7c6af7,#3ecfaa)', bg:'rgba(124,106,247,.12)', okBg:'linear-gradient(135deg,#7c6af7,#5a4fd4)' },
+  };
+
+  let _resolve = null;
+
+  function show({ title, msg, type='info', mode='alert', placeholder='', defaultVal='' }) {
+    const t = TYPES[mode==='prompt' ? 'prompt' : type] || TYPES.info;
+
+    topbar.style.background      = t.grad;
+    iconEl.style.background      = t.bg;
+    iconEl.style.color           = t.color;
+    iconEl.innerHTML             = `<i class="fa-solid ${t.icon}"></i>`;
+    titleEl.textContent          = title || (mode==='danger'?'নিশ্চিত করো':'বার্তা');
+    msgEl.textContent            = msg || '';
+    okBtn.style.background       = t.okBg;
+
+    // Cancel button
+    if(mode === 'alert') {
+      cancelBtn.style.display = 'none';
+      okBtn.textContent = 'ঠিক আছে';
+    } else if(mode === 'confirm') {
+      cancelBtn.style.display = '';
+      cancelBtn.textContent = 'না, বাতিল';
+      okBtn.textContent = type==='danger' ? '⚠️ হ্যাঁ, করো' : '✓ হ্যাঁ';
+    } else {
+      cancelBtn.style.display = '';
+      cancelBtn.textContent = 'বাতিল';
+      okBtn.textContent = '✓ দাও';
+    }
+
+    // Input
+    if(mode === 'prompt') {
+      inputWrap.style.display = '';
+      inputEl.placeholder = placeholder || '';
+      inputEl.value = defaultVal || '';
+      setTimeout(() => inputEl.focus(), 320);
+    } else {
+      inputWrap.style.display = 'none';
+    }
+
+    overlay.classList.add('visible');
+
+    return new Promise(res => {
+      _resolve = res;
+    });
+  }
+
+  function close(val) {
+    overlay.classList.remove('visible');
+    if(_resolve) { _resolve(val); _resolve = null; }
+  }
+
+  okBtn.addEventListener('click', () => {
+    const val = inputWrap.style.display !== 'none' ? inputEl.value.trim() : true;
+    close(val === '' && inputWrap.style.display !== 'none' ? null : val);
+  });
+  cancelBtn.addEventListener('click', () => close(false));
+  overlay.addEventListener('click', e => { if(e.target===overlay) close(false); });
+  document.addEventListener('keydown', e => {
+    if(!overlay.classList.contains('visible')) return;
+    if(e.key==='Escape') close(false);
+    if(e.key==='Enter' && inputWrap.style.display!=='none') okBtn.click();
+  });
+
+  // Global API
+  window.cAlert = (msg, opts={}) => show({ msg, mode:'alert', type:opts.type||'info', title:opts.title||'জানুন' });
+  window.cConfirm = (msg, opts={}) => show({ msg, mode:'confirm', type:opts.type||'warning', title:opts.title||'নিশ্চিত?' });
+  window.cPrompt = (msg, opts={}) => show({ msg, mode:'prompt', title:opts.title||'তথ্য দিন', placeholder:opts.placeholder||'', defaultVal:opts.defaultVal||'' });
+})();
+
+/* ── Replace all native alert/confirm/prompt calls ── */
+
+// Goal save
+const _origWgSave = window.wgSaveGoal;
+// Patch inline usages via override
+const _origAddCard = window.fcSaveStandaloneCard;
+
+// Intercept: we patch the specific functions that use alert/confirm/prompt
+// by wrapping the existing JS with async versions
+
+// 1. Goal name validation (line ~8314)
+// 2. Card delete confirm (line ~7943)
+// 3. Goal delete confirm (line ~8354)
+// 4. General alert calls
+// We do this by replacing window.alert / confirm / prompt with async shims
+// and making the callers async-aware via a trick: store pending state
+
+// Simple sync-compatible shim using a modal that "blocks" via rescheduling
+// For truly async calls (await cAlert), use the global API above.
+// For legacy sync alert() calls, show the dialog and let the function continue
+// after the user clicks (non-blocking shim — prevents freeze).
+
+const _nativeAlert   = window.alert.bind(window);
+const _nativeConfirm = window.confirm.bind(window);
+const _nativePrompt  = window.prompt.bind(window);
+
+// Map sync calls to async dialog (non-blocking — function returns undefined immediately,
+// but UX shows the modal. For critical validation, we handle per-function below.)
+window.alert = function(msg) { cAlert(String(msg), {type:'info', title:'বার্তা'}); };
+// confirm/prompt need return value — keep native as fallback only if dialog fails
+// Instead, patch specific functions below to use async/await properly.
+
+</script>
+
+<script>
+/* ── Async patches for specific alert/confirm/prompt usages ── */
+
+// Wait for DOM ready then patch
+document.addEventListener('DOMContentLoaded', function patchDialogs() {
+
+  // ── 1. fcDeleteCard — uses confirm ──
+  if(typeof fcDeleteCard === 'function') {
+    const _orig = fcDeleteCard;
+    window.fcDeleteCard = async function(id) {
+      const ok = await cConfirm('এই card চিরতরে delete হয়ে যাবে।', {
+        title: 'Card Delete করবে?', type: 'danger'
+      });
+      if(!ok) return;
+      // call original but skip its own confirm (already answered)
+      const _c = window.confirm; window.confirm = () => true;
+      _orig(id);
+      window.confirm = _c;
+    };
+  }
+
+  // ── 2. wgDeleteGoal — uses confirm ──
+  if(typeof wgDeleteGoal === 'function') {
+    const _orig = wgDeleteGoal;
+    window.wgDeleteGoal = async function(id) {
+      const ok = await cConfirm('এই goal delete হয়ে যাবে।', {
+        title: 'Goal Delete করবে?', type: 'danger'
+      });
+      if(!ok) return;
+      const _c = window.confirm; window.confirm = () => true;
+      _orig(id);
+      window.confirm = _c;
+    };
+  }
+
+  // ── 3. wgSaveGoal — uses prompt for goal name ──
+  if(typeof wgSaveGoal === 'function') {
+    const _orig = wgSaveGoal;
+    window.wgSaveGoal = async function() {
+      // Let the original run; if it calls alert for validation, our shim shows dialog
+      // For the prompt specifically — patch window.prompt temporarily
+      // Actually wgSaveGoal reads from form fields, not prompt — alert is for validation
+      // So just call it; our window.alert shim will show the custom dialog
+      _orig();
+    };
+  }
+
+  // ── 4. fcSaveStandaloneCard validation alert ──
+  // window.alert shim already handles these non-blocking
+
+}, {once: true});
 </script>
 </body>
 </html>
