@@ -202,47 +202,35 @@ app.put('/api/kv/:key', async (req, res) => {
   }
 });
 
-// ===================== AI PROXY — Gemini (ফ্রি!) =====================
+// ===================== AI PROXY — Groq (ফ্রি + Fast!) =====================
+// Anthropic format এ আসে, Groq/OpenAI format এ convert করে পাঠায়
 app.post('/api/ai', (req, res) => {
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY environment variable not set!' });
+  const GROQ_API_KEY = process.env.GROQ_API_KEY;
+  if (!GROQ_API_KEY) {
+    return res.status(500).json({ error: 'GROQ_API_KEY environment variable not set!' });
   }
 
   const { system, messages, max_tokens } = req.body;
 
-  // Gemini format এ convert
-  const contents = [];
+  // Groq OpenAI-compatible format এ convert
+  const groqMessages = [];
+  if (system) groqMessages.push({ role: 'system', content: system });
+  (messages || []).forEach(m => groqMessages.push({ role: m.role, content: m.content }));
 
-  // messages convert
-  (messages || []).forEach(m => {
-    contents.push({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    });
+  const groqBody = JSON.stringify({
+    model: 'llama-3.3-70b-versatile',
+    messages: groqMessages,
+    max_tokens: max_tokens || 1000
   });
-
-  // যদি contents empty হয়, একটা dummy message দাও
-  if (contents.length === 0) {
-    contents.push({ role: 'user', parts: [{ text: 'Hello' }] });
-  }
-
-  const geminiBody = JSON.stringify({
-    // system instruction আলাদাভাবে পাঠাও — এটাই সঠিক Gemini format
-    system_instruction: system ? { parts: [{ text: system }] } : undefined,
-    contents,
-    generationConfig: { maxOutputTokens: max_tokens || 1000 }
-  });
-
-  const apiPath = '/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_API_KEY;
 
   const options = {
-    hostname: 'generativelanguage.googleapis.com',
-    path: apiPath,
+    hostname: 'api.groq.com',
+    path: '/openai/v1/chat/completions',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(geminiBody)
+      'Authorization': 'Bearer ' + GROQ_API_KEY,
+      'Content-Length': Buffer.byteLength(groqBody)
     }
   };
 
@@ -252,24 +240,20 @@ app.post('/api/ai', (req, res) => {
     apiRes.on('end', () => {
       try {
         const parsed = JSON.parse(data);
-        console.log('Gemini status:', apiRes.statusCode);
-        console.log('Gemini response:', JSON.stringify(parsed).slice(0, 300));
-
-        const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        // Groq response → Anthropic format এ convert করে frontend এ পাঠাও
+        const text = parsed?.choices?.[0]?.message?.content || '';
         res.json({ content: [{ type: 'text', text }] });
       } catch (e) {
-        console.error('Gemini parse error:', e.message, 'raw:', data.slice(0, 300));
-        res.status(500).json({ error: 'Invalid response from Gemini', raw: data });
+        res.status(500).json({ error: 'Invalid response from Groq', raw: data });
       }
     });
   });
 
   apiReq.on('error', (err) => {
-    console.error('Gemini request error:', err.message);
     res.status(500).json({ error: err.message });
   });
 
-  apiReq.write(geminiBody);
+  apiReq.write(groqBody);
   apiReq.end();
 });
 
