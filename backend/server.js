@@ -234,7 +234,7 @@ app.post('/api/ai', (req, res) => {
     generationConfig: { maxOutputTokens: max_tokens || 1000 }
   });
 
-  const apiPath = '/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
+  const apiPath = '/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_API_KEY;
 
   const options = {
     hostname: 'generativelanguage.googleapis.com',
