@@ -40,24 +40,38 @@ body {
   font-size: 14px;
   line-height: 1.6;
   min-height: 100vh;
+  /* Smooth scroll on mobile */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Ambient glow background */
+/* Performance: isolate tab content layers */
+.tab-view {
+  contain: paint;
+}
+
+/* Performance: GPU hint for animated cards */
+.topic-item, .radar-item, .completed-item, .fc-section, .aim-card, .wg-goal-card {
+  transform: translateZ(0);
+}
+
+/* Ambient glow background — static, GPU-friendly */
 body::before {
   content: '';
   position: fixed;
   top: -200px; left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(0);
   width: 900px; height: 600px;
-  background: radial-gradient(ellipse at 30% 40%, rgba(124,106,247,0.08) 0%, transparent 60%),
-              radial-gradient(ellipse at 70% 60%, rgba(62,207,170,0.05) 0%, transparent 60%);
+  background: radial-gradient(ellipse at 30% 40%, rgba(124,106,247,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 60%, rgba(62,207,170,0.04) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
+  will-change: auto;
 }
 
 /* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
+html { scroll-behavior: smooth; }
 
 /* ─── PLAN MAP BUTTON ─── */
 .plan-map-btn {
@@ -106,12 +120,13 @@ body::before {
 /* ─── PLAN MAP MODAL ─── */
 .plan-map-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.72);
-  backdrop-filter: blur(10px);
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 9998;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
-  transition: opacity 0.3s;
+  transition: opacity 0.2s;
 }
 .plan-map-overlay.visible {
   opacity: 1; pointer-events: all;
@@ -298,12 +313,13 @@ body::before {
 /* ─── EXAM MODAL ─── */
 .exam-overlay {
   position:fixed; inset:0;
-  background:rgba(0,0,0,0.82);
-  backdrop-filter:blur(12px);
+  background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
   z-index:10000;
   display:flex; align-items:center; justify-content:center;
   opacity:0; pointer-events:none;
-  transition:opacity .3s;
+  transition:opacity .2s;
 }
 .exam-overlay.visible { opacity:1; pointer-events:all; }
 
@@ -731,12 +747,13 @@ body::before {
 
 .ai-motivator-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 9999;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
-  transition: opacity 0.35s;
+  transition: opacity 0.2s;
 }
 .ai-motivator-overlay.visible {
   opacity: 1; pointer-events: all;
@@ -1671,8 +1688,9 @@ body::before {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.78);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: none;
   align-items: center;
   justify-content: center;
@@ -3216,12 +3234,13 @@ body::before {
 /* ── Gamification Panel (modal) ── */
 .gm-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(12px);
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 9997;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
-  transition: opacity 0.3s;
+  transition: opacity 0.2s;
 }
 .gm-overlay.visible { opacity: 1; pointer-events: all; }
 
@@ -3478,12 +3497,13 @@ body::before {
 /* Level up modal */
 .lvlup-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(16px);
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 10000;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
-  transition: opacity 0.4s;
+  transition: opacity 0.3s;
 }
 .lvlup-overlay.visible { opacity: 1; pointer-events: all; }
 .lvlup-card {
@@ -3705,12 +3725,13 @@ body::before {
 /* ── ADD / EDIT GOAL MODAL ── */
 .wg-modal-overlay {
   position:fixed; inset:0;
-  background:rgba(0,0,0,.78);
-  backdrop-filter:blur(12px);
+  background:rgba(0,0,0,.8);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
   z-index:10001;
   display:flex; align-items:center; justify-content:center;
   opacity:0; pointer-events:none;
-  transition:opacity .3s;
+  transition:opacity .2s;
 }
 .wg-modal-overlay.visible { opacity:1; pointer-events:all; }
 .wg-modal-card {
@@ -5160,16 +5181,24 @@ window.onload=async function(){
 };
 
 // ── TABS ──
+let _lastTab = 'routine';
+let _switchTabTimer = null;
 function switchTab(id){
+  if(_lastTab === id) return; // already on this tab
+  _lastTab = id;
   document.querySelectorAll('.tab-view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-'+id).classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
-  if(id==='progress') renderProgress();
-  if(id==='daily') renderDaily();
-  if(id==='weeklygoals') wgRender();
-  if(id==='flashcards'){ fcInitFilters(); if(fcCurrentView==='library') fcLibRender(); else fcRender(); }
-  if(id==='pomodoro'){ pomoSyncTopics(); pomoRenderTopicSelect(); pomoRenderHistory(); pomoRenderSessionChips(); if(_flCurrentTab!=='today') { if(_flCurrentTab==='lifetime') flRenderLifetime(); else if(_flCurrentTab==='subject') flRenderCategory(); } }
+  // Defer heavy renders to next frame so tab switch feels instant
+  if(_switchTabTimer) clearTimeout(_switchTabTimer);
+  _switchTabTimer = setTimeout(()=>{
+    if(id==='progress') renderProgress();
+    if(id==='daily') renderDaily();
+    if(id==='weeklygoals') wgRender();
+    if(id==='flashcards'){ fcInitFilters(); if(fcCurrentView==='library') fcLibRender(); else fcRender(); }
+    if(id==='pomodoro'){ pomoSyncTopics(); pomoRenderTopicSelect(); pomoRenderHistory(); pomoRenderSessionChips(); if(_flCurrentTab!=='today') { if(_flCurrentTab==='lifetime') flRenderLifetime(); else if(_flCurrentTab==='subject') flRenderCategory(); } }
+  }, 0);
 }
 
 // ── TAB 1: ROUTINE ──
@@ -5237,7 +5266,12 @@ async function handleInject(){
 
 // ── TAB 2: DAILY ──
 function handleDateChange(v){activeDate=v;populateInjSubs();renderDaily();}
+let _renderDailyTimer = null;
 function renderDaily(){
+  if(_renderDailyTimer) cancelAnimationFrame(_renderDailyTimer);
+  _renderDailyTimer = requestAnimationFrame(_doRenderDaily);
+}
+function _doRenderDaily(){
   const day=new Date(activeDate).toLocaleDateString('en-US',{weekday:'long'});
   document.getElementById('daily-title').innerText=`${day}'s Workbench`;
   document.getElementById('daily-sub').innerText=new Date(activeDate).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -5406,7 +5440,12 @@ async function approveCustomRev(id){
 }
 
 // ── TAB 3: PROGRESS ──
+let _renderProgressTimer = null;
 function renderProgress(){
+  if(_renderProgressTimer) cancelAnimationFrame(_renderProgressTimer);
+  _renderProgressTimer = requestAnimationFrame(_doRenderProgress);
+}
+function _doRenderProgress(){
   let comp=0,pend=0,revs=0,all=[];
   Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
     if(t.status==='Complete'){comp++;all.push(t);revs+=(t.reviewsDone||[]).length+(t.customReviewHistoryDates||[]).length;}
@@ -8570,7 +8609,7 @@ function examShowHistory(topicId){
     </div>`;
   }).join('');
   const box = document.createElement('div');
-  box.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:10001;display:flex;align-items:center;justify-content:center';
+  box.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:10001;display:flex;align-items:center;justify-content:center';
   box.innerHTML=`<div style="background:var(--card);border:1px solid rgba(212,168,67,.25);border-radius:20px;padding:28px;max-width:440px;width:90%;max-height:80vh;overflow-y:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
       <div style="font-size:13px;font-weight:700;color:var(--gold2)"><i class="fa-solid fa-graduation-cap"></i> Exam History</div>
@@ -8996,8 +9035,12 @@ window.switchTab = function(id){
     aimRenderToday();
     aimRenderDailyList();
     document.getElementById('aim-init-time').innerText = new Date().toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});
-    // Auto-ask AI on first open
-    setTimeout(aimAskAI, 800);
+    // Auto-ask AI delayed — don't block tab render
+    // Only auto-ask if chat box is still showing the initial default message
+    const chatBox = document.getElementById('aim-chat-box');
+    if(chatBox && chatBox.querySelectorAll('.aim-msg').length <= 1){
+      setTimeout(aimAskAI, 2000);
+    }
   }
 };
 
