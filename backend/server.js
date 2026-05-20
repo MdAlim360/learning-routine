@@ -3,16 +3,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const https = require('https');
 
 const app = express();
 
 // ===================== MIDDLEWARE =====================
-// CORS — local dev এ সব allow, production এ same-origin (Render serve করে)
 app.use(cors());
-
 app.use(express.json({ limit: '10mb' }));
-
-// Static frontend serve (production এ Render থেকে)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // ===================== MONGODB CONNECTION =====================
@@ -20,12 +17,11 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   console.error('❌ MONGODB_URI environment variable not set!');
-  console.error('   .env file এ MONGODB_URI দিন অথবা Render dashboard এ Environment Variable সেট করুন।');
   process.exit(1);
 }
 
 mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 10000, // 10 seconds timeout
+  serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
 })
   .then(() => console.log('✅ MongoDB Connected Successfully!'))
@@ -34,13 +30,11 @@ mongoose.connect(MONGODB_URI, {
     process.exit(1);
   });
 
-// Connection events
 mongoose.connection.on('disconnected', () => console.warn('⚠️  MongoDB Disconnected'));
 mongoose.connection.on('reconnected', () => console.log('🔄 MongoDB Reconnected'));
 
 // ===================== MONGOOSE SCHEMAS =====================
 
-// Topic Record Schema
 const topicSchema = new mongoose.Schema({
   id: { type: Number, required: true, unique: true },
   date: { type: String, required: true },
@@ -57,13 +51,11 @@ const topicSchema = new mongoose.Schema({
   customReviewHistoryDates: { type: [String], default: [] }
 }, { timestamps: true });
 
-// Routine Schema (weekly schedule)
 const routineSchema = new mongoose.Schema({
   userId: { type: String, default: 'default' },
   routine: { type: mongoose.Schema.Types.Mixed, required: true }
 }, { timestamps: true });
 
-// Generic Key-Value Store Schema (for pomodoro, streak, flashcards, planmap)
 const kvSchema = new mongoose.Schema({
   userId: { type: String, default: 'default' },
   key:    { type: String, required: true },
@@ -89,7 +81,6 @@ async function getAllTopicsGrouped() {
 
 // ===================== ROUTES: TOPICS =====================
 
-// GET /api/topics — সব topics grouped by date
 app.get('/api/topics', async (req, res) => {
   try {
     const grouped = await getAllTopicsGrouped();
@@ -99,23 +90,18 @@ app.get('/api/topics', async (req, res) => {
   }
 });
 
-// POST /api/topics — নতুন topic add
 app.post('/api/topics', async (req, res) => {
   try {
     const topicData = req.body;
-    
-    // যদি ফ্রন্টএন্ড থেকে id না আসে, তবে এখানে একটি ইউনিক id তৈরি করে দেওয়া হচ্ছে
     if (!topicData.id) {
       topicData.id = Date.now() + Math.floor(Math.random() * 1000);
     }
-    
     const topic = new Topic(topicData);
     await topic.save();
     const grouped = await getAllTopicsGrouped();
     res.json({ success: true, data: grouped });
   } catch (err) {
     if (err.code === 11000) {
-      // duplicate id হলে নতুন id দিয়ে try করো
       try {
         const topicData = { ...req.body, id: Date.now() + Math.floor(Math.random() * 1000) };
         const topic = new Topic(topicData);
@@ -131,7 +117,6 @@ app.post('/api/topics', async (req, res) => {
   }
 });
 
-// PUT /api/topics/:id — topic update (complete, shift date, etc.)
 app.put('/api/topics/:id', async (req, res) => {
   try {
     const topicId = parseInt(req.params.id);
@@ -143,7 +128,6 @@ app.put('/api/topics/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/topics/:id — topic delete (purge)
 app.delete('/api/topics/:id', async (req, res) => {
   try {
     const topicId = parseInt(req.params.id);
@@ -155,16 +139,13 @@ app.delete('/api/topics/:id', async (req, res) => {
   }
 });
 
-// POST /api/topics/bulk — পুরো dbTopics object একসাথে sync (migration এর জন্য)
 app.post('/api/topics/bulk', async (req, res) => {
   try {
-    const dbTopics = req.body; // { "date": [topics], ... }
+    const dbTopics = req.body;
     const allTopics = [];
     Object.keys(dbTopics).forEach(dateStr => {
       dbTopics[dateStr].forEach(t => allTopics.push(t));
     });
-
-    // Upsert করো প্রতিটা topic
     for (const topic of allTopics) {
       await Topic.findOneAndUpdate(
         { id: topic.id },
@@ -172,7 +153,6 @@ app.post('/api/topics/bulk', async (req, res) => {
         { upsert: true, new: true }
       );
     }
-
     const grouped = await getAllTopicsGrouped();
     res.json({ success: true, data: grouped, message: `${allTopics.length} topics synced!` });
   } catch (err) {
@@ -192,7 +172,6 @@ const defaultRoutine = {
   "Friday": [[], [], ["Geography", "English"], [], [], []]
 };
 
-// GET /api/routine
 app.get('/api/routine', async (req, res) => {
   try {
     let routineDoc = await Routine.findOne({ userId: 'default' }).lean();
@@ -206,7 +185,6 @@ app.get('/api/routine', async (req, res) => {
   }
 });
 
-// PUT /api/routine — routine update
 app.put('/api/routine', async (req, res) => {
   try {
     const routineData = req.body;
@@ -221,9 +199,8 @@ app.put('/api/routine', async (req, res) => {
   }
 });
 
-// ===================== ROUTES: KEY-VALUE STORE (pomodoro, streak, flashcards, planmap) =====================
+// ===================== ROUTES: KEY-VALUE STORE =====================
 
-// GET /api/kv/:key
 app.get('/api/kv/:key', async (req, res) => {
   try {
     const doc = await KV.findOne({ userId: 'default', key: req.params.key }).lean();
@@ -233,10 +210,9 @@ app.get('/api/kv/:key', async (req, res) => {
   }
 });
 
-// PUT /api/kv/:key
 app.put('/api/kv/:key', async (req, res) => {
   try {
-    const val = req.body; // { v: actualValue }
+    const val = req.body;
     await KV.findOneAndUpdate(
       { userId: 'default', key: req.params.key },
       { userId: 'default', key: req.params.key, value: val },
@@ -248,30 +224,70 @@ app.put('/api/kv/:key', async (req, res) => {
   }
 });
 
-// ===================== AI PROXY (browser CORS এড়ানোর জন্য) =====================
-app.post('/api/ai', async (req, res) => {
-  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-  if (!ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY environment variable not set!' });
+// ===================== AI PROXY — Gemini (ফ্রি!) =====================
+// Frontend থেকে Anthropic format এ আসে, server এটাকে Gemini format এ convert করে পাঠায়
+app.post('/api/ai', (req, res) => {
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY environment variable not set!' });
   }
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify(req.body)
+
+  // Anthropic format → Gemini format convert
+  const { system, messages, max_tokens } = req.body;
+
+  const contents = [];
+  if (system) {
+    contents.push({ role: 'user', parts: [{ text: '[System instruction]: ' + system }] });
+    contents.push({ role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] });
+  }
+  (messages || []).forEach(m => {
+    contents.push({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }]
     });
-    const data = await response.json();
-    res.status(response.status).json(data);
-  } catch (err) {
+  });
+
+  const geminiBody = JSON.stringify({
+    contents,
+    generationConfig: { maxOutputTokens: max_tokens || 1000 }
+  });
+
+  const apiPath = '/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
+
+  const options = {
+    hostname: 'generativelanguage.googleapis.com',
+    path: apiPath,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(geminiBody)
+    }
+  };
+
+  const apiReq = https.request(options, (apiRes) => {
+    let data = '';
+    apiRes.on('data', chunk => data += chunk);
+    apiRes.on('end', () => {
+      try {
+        const parsed = JSON.parse(data);
+        // Gemini response → Anthropic format এ convert করে frontend এ পাঠাও
+        const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        res.json({ content: [{ type: 'text', text }] });
+      } catch (e) {
+        res.status(500).json({ error: 'Invalid response from Gemini', raw: data });
+      }
+    });
+  });
+
+  apiReq.on('error', (err) => {
     res.status(500).json({ error: err.message });
-  }
+  });
+
+  apiReq.write(geminiBody);
+  apiReq.end();
 });
 
-// ===================== HEALTH CHECK (Render ping এর জন্য) =====================
+// ===================== HEALTH CHECK =====================
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
