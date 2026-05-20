@@ -1116,7 +1116,9 @@ button, a, input, [onclick] {
 .s-res  { background: rgba(240,180,100,0.12); color: #f0b464; }
 
 .edit-btn {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 10px;
   color: var(--accent2);
   background: none;
@@ -1125,8 +1127,11 @@ button, a, input, [onclick] {
   margin-top: 6px;
   padding: 0;
   font-family: inherit;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
 }
-.routine-table tbody tr:hover .edit-btn { display: inline-flex; align-items: center; gap: 4px; }
+.routine-table tbody tr:hover .edit-btn { opacity: 1; pointer-events: auto; }
 .empty-cell { color: rgba(255,255,255,0.12); font-size: 11px; font-style: italic; }
 
 /* ─── DAILY TAB ─── */
@@ -1293,8 +1298,11 @@ button, a, input, [onclick] {
   gap: 4px;
   animation: pulse 2s infinite;
   will-change: opacity;
+  contain: layout style;
 }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
+@media (prefers-reduced-motion: reduce) { .pending-badge { animation: none; } }
+.anim-paused .pending-badge { animation-play-state: paused; }
 
 .topic-actions { display: flex; align-items: center; gap: 8px; shrink: 0; }
 
@@ -5362,7 +5370,11 @@ window.onload=async function(){
     pomoUpdateDisplay();
   }catch(e){ console.warn('KV load error:', e); }
   hideSync();
-  renderRoutine(); setupInjector(); renderDaily(); skRender(); fcUpdateNavBadge(); gmUpdatePill();
+  // Stagger heavy init renders so they don't all block the main thread at once
+  renderRoutine(); setupInjector();
+  requestAnimationFrame(()=>{
+    renderDaily(); skRender(); fcUpdateNavBadge(); gmUpdatePill();
+  });
 };
 
 // ── TABS ──
@@ -5387,9 +5399,14 @@ function switchTab(id){
 }
 
 // ── TAB 1: ROUTINE ──
+let _routineHash = '';
 function renderRoutine(){
+  // Dirty check: skip full rebuild if data unchanged
+  const newHash = JSON.stringify(dbRoutine);
+  if(newHash === _routineHash) return;
+  _routineHash = newHash;
   const tb=document.getElementById('routine-tbody');
-  tb.innerHTML='';
+  const frag=document.createDocumentFragment();
   days.forEach(day=>{
     const tr=document.createElement('tr');
     let h=`<td class="day-cell">${day}</td>`;
@@ -5397,8 +5414,10 @@ function renderRoutine(){
       if(arr.length===0) h+=`<td><span class="empty-cell">—</span><button class="edit-btn" onclick="openEdit('${day}',${i})"><i class="fa-regular fa-pen-to-square"></i> Edit</button></td>`;
       else h+=`<td>${arr.map(s=>`<span class="subject-pill ${pillCls[i]}">${s}</span>`).join('')}<button class="edit-btn" onclick="openEdit('${day}',${i})"><i class="fa-regular fa-pen-to-square"></i> Edit</button></td>`;
     });
-    tr.innerHTML=h; tb.appendChild(tr);
+    tr.innerHTML=h; frag.appendChild(tr);
   });
+  tb.innerHTML='';
+  tb.appendChild(frag);
 }
 function openEdit(day,ci){
   editCell={day,ci};
@@ -5470,12 +5489,18 @@ function _doRenderDaily(){
   if(!subjects.length){
     liveC.innerHTML=`<div class="empty"><i class="fa-solid fa-inbox"></i>আজকের কোনো রানিং টপিক নেই। উপরের ইনজেক্টর থেকে অ্যাড করুন।</div>`;
   } else {
+    // Pre-group topics by subject to avoid O(subjects × pending) repeated filter
+    const bySubject = Object.create(null);
+    for(let i=0;i<pending.length;i++){ const t=pending[i]; (bySubject[t.subject]||(bySubject[t.subject]=[])).push(t); }
+    const pmAll = pmCache || {}; // read plan cache once
     subjects.forEach(sub=>{
       const div=document.createElement('div');
       div.className='topic-group';
       let html=`<div class="topic-group-name"><i class="fa-solid fa-bookmark"></i> ${sub}</div>`;
-      pending.filter(t=>t.subject===sub).forEach(t=>{
+      (bySubject[sub]||[]).forEach(t=>{
         const overdue=t.originDate&&t.originDate!==activeDate;
+        const planItems=(pmAll[t.id]||[]);
+        const hasPlan=planItems.length>0;
         html+=`<div class="topic-item">
           <div style="flex:1;min-width:0">
             <div class="topic-name">${t.topicName}</div>
@@ -5489,7 +5514,7 @@ function _doRenderDaily(){
               <button class="shift-btn"><i class="fa-regular fa-calendar-days"></i> Shift</button>
               <input type="date" onchange="moveTopic(${t.id},this.value)">
             </div>
-            <button class="plan-map-btn ${(pmGetPlan(t.id)||[]).length>0?'has-plan':''}" onclick="pmOpen(${t.id})"><i class="fa-solid fa-map"></i> Plan${(pmGetPlan(t.id)||[]).length>0?' ✦':''}</button>
+            <button class="plan-map-btn ${hasPlan?'has-plan':''}" onclick="pmOpen(${t.id})"><i class="fa-solid fa-map"></i> Plan${hasPlan?' ✦':''}</button>
             <button class="complete-btn" onclick="openCompleteModal(${t.id},'${t.topicName.replace(/'/g,"\\'")}')">✅ Done</button>
             <button class="del-btn" onclick="triggerPurge(${t.id})"><i class="fa-solid fa-trash"></i></button>
           </div>
@@ -5576,14 +5601,34 @@ async function doPurge(){
 }
 
 // ── RADAR ──
+// Cache: date-string → day-diff mapping to avoid repeated Date construction
+const _radarDiffCache = Object.create(null);
+function _radarDiff(completionDate, activeDateMs){
+  const key = completionDate + '|' + activeDateMs;
+  if(_radarDiffCache[key] !== undefined) return _radarDiffCache[key];
+  const diff = Math.round(Math.abs(activeDateMs - new Date(completionDate).getTime()) / 86400000);
+  _radarDiffCache[key] = diff;
+  return diff;
+}
+const _RADAR_MILESTONES = new Set([1,3,7,30]);
 function renderRadar(){
   const c=document.getElementById('radar-container');
-  const td=new Date(activeDate);
+  const activeDateMs=new Date(activeDate).getTime();
   let count=0;
   const frag=document.createDocumentFragment();
   const tmp=document.createElement('div');
-  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
-    if(t.status!=='Complete'||!t.completionDate) return;
+  // Flatten all topics once
+  const allTopics = [];
+  const vals = Object.values(dbTopics);
+  for(let i=0;i<vals.length;i++){
+    const arr=vals[i];
+    for(let j=0;j<arr.length;j++){
+      const t=arr[j];
+      if(t.status==='Complete'&&t.completionDate) allTopics.push(t);
+    }
+  }
+  for(let k=0;k<allTopics.length;k++){
+    const t=allTopics[k];
     const noteLink=t.noteUrl?`<a href="${t.noteUrl}" target="_blank" class="note-link" style="margin-top:4px;display:inline-flex"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Note</a>`:'';
     if(t.customRevPendingOn&&t.customRevPendingOn===activeDate){
       count++;
@@ -5597,8 +5642,8 @@ function renderRadar(){
       </div>`;
       frag.appendChild(tmp.firstElementChild);
     }
-    const diff=Math.round(Math.abs(td-new Date(t.completionDate))/(1000*60*60*24));
-    if([1,3,7,30].includes(diff)){
+    const diff=_radarDiff(t.completionDate, activeDateMs);
+    if(_RADAR_MILESTONES.has(diff)){
       count++;
       const done=(t.reviewsDone||[]).includes(diff);
       tmp.innerHTML=`<div class="radar-item ${done?'done':''}">
@@ -5615,7 +5660,7 @@ function renderRadar(){
       </div>`;
       frag.appendChild(tmp.firstElementChild);
     }
-  }));
+  }
   c.innerHTML='';
   if(!count) c.innerHTML=`<div class="empty"><i class="fa-solid fa-radar"></i>আজ কোনো রিভিশন ডিউ নেই।</div>`;
   else c.appendChild(frag);
@@ -5761,6 +5806,7 @@ function _doRenderProgress(){
   if(!totalCards){
     fcCatEl.innerHTML = `<div class="empty" style="grid-column:1/-1"><i class="fa-solid fa-layer-group"></i>এখনো কোনো flashcard নেই।</div>`;
   } else {
+    const fcCatParts = [];
     cats.forEach((cat, ci) => {
       const catCards = fcCards.filter(c => c.category === cat);
       if(!catCards.length) return;
@@ -5787,7 +5833,7 @@ function _doRenderProgress(){
           ${st.mastered ? `<span style="font-size:10px;font-weight:700;color:var(--gold2);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.15);padding:2px 7px;border-radius:5px">⭐ ${st.mastered}</span>` : ''}
         </div>`).join('');
 
-      fcCatEl.innerHTML += `
+      fcCatParts.push(`
         <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
           <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:10px">
             <div style="width:8px;height:8px;border-radius:50%;background:${catColors[ci]};flex-shrink:0"></div>
@@ -5821,8 +5867,9 @@ function _doRenderProgress(){
             <!-- Subject rows -->
             <div>${subjRows}</div>
           </div>
-        </div>`;
+        </div>`);
     });
+    fcCatEl.innerHTML = fcCatParts.join('');
   }
 }
 function showHistory(ds){
@@ -9274,21 +9321,22 @@ function aimRenderWeekDots(){
 // Daily report list (last 14 days)
 function aimRenderDailyList(){
   const el = document.getElementById('aim-daily-list');
-  el.innerHTML = '';
   const log = aimData.dailyLog || {};
   const dates = Object.keys(log).sort((a,b)=>b.localeCompare(a)).slice(0,14);
   if(!dates.length){ el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">এখনো কোনো daily record নেই। কাজ শুরু করো!</div>`; return; }
+  const parts = [];
   dates.forEach(ds => {
     const e = log[ds];
     const g = aimGrade(e.score||0);
-    el.innerHTML += `<div class="aim-history-item">
+    parts.push(`<div class="aim-history-item">
       <div class="aim-hi-date">${ds}</div>
       <div class="aim-hi-score" style="color:${g.color}">${e.score||0}</div>
       <div class="aim-hi-bar"><div class="aim-hi-fill" style="width:${e.score||0}%;background:${g.color}"></div></div>
       <div class="aim-hi-grade" style="color:${g.color}">${e.aiGrade||'—'}</div>
       <div style="font-size:10px;color:var(--muted);margin-left:8px">${e.topics||0}✅ ${e.revisions||0}🔄 ${e.focusMin||0}m</div>
-    </div>`;
+    </div>`);
   });
+  el.innerHTML = parts.join('');
 }
 
 // Weekly report
@@ -9311,19 +9359,21 @@ function aimRenderWeeklyList(){
   });
   const sorted = Object.keys(weeks).sort((a,b)=>b.localeCompare(a)).slice(0,12);
   if(!sorted.length){ el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">কোনো weekly data নেই।</div>`; return; }
+  const wParts = [];
   sorted.forEach(wk => {
     const w = weeks[wk];
     const avg = w.days ? Math.round(w.totalScore/w.days) : 0;
     const g   = aimGrade(avg);
     const { label: wLabel } = gmWeekLabel(wk);
-    el.innerHTML += `<div class="aim-history-item">
+    wParts.push(`<div class="aim-history-item">
       <div class="aim-hi-date" style="width:90px">${wLabel}</div>
       <div class="aim-hi-score" style="color:${g.color}">${avg}</div>
       <div class="aim-hi-bar"><div class="aim-hi-fill" style="width:${avg}%;background:${g.color}"></div></div>
       <div class="aim-hi-grade" style="color:${g.color}">${g.grade}</div>
       <div style="font-size:10px;color:var(--muted);margin-left:8px">${w.topics}✅ ${w.revisions}🔄 ${w.days}দিন ${w.focusMin}m</div>
-    </div>`;
+    </div>`);
   });
+  el.innerHTML = wParts.join('');
 }
 
 // Monthly compare grid
@@ -9342,6 +9392,7 @@ function aimRenderMonthlyGrid(){
   const sorted = Object.keys(months).sort((a,b)=>b.localeCompare(a)).slice(0,9);
   if(!sorted.length){ el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;grid-column:1/-1">কোনো monthly data নেই।</div>`; return; }
   const maxAvg = Math.max(...sorted.map(m=>months[m].days?Math.round(months[m].total/months[m].days):0));
+  const moParts = [];
   sorted.forEach(mo => {
     const m = months[mo];
     const avg = m.days ? Math.round(m.total/m.days) : 0;
@@ -9349,14 +9400,15 @@ function aimRenderMonthlyGrid(){
     const isBest = avg === maxAvg && maxAvg > 0;
     const [yr,mn] = mo.split('-');
     const moName = new Date(+yr,+mn-1,1).toLocaleString('bn-BD',{month:'long'});
-    el.innerHTML += `<div class="aim-compare-card ${isBest?'best':''}">
+    moParts.push(`<div class="aim-compare-card ${isBest?'best':''}">
       ${isBest?'<div style="font-size:9px;color:var(--teal);font-weight:700;margin-bottom:4px">⭐ সেরা মাস</div>':''}
       <div class="aim-compare-month">${moName} ${yr}</div>
       <div class="aim-compare-num" style="color:${g.color}">${avg}</div>
       <div class="aim-compare-grade" style="color:${g.color}">Grade ${g.grade}</div>
       <div style="font-size:10px;color:var(--muted);margin-top:4px">${m.days} দিন · ${m.topics} topics</div>
-    </div>`;
+    </div>`);
   });
+  el.innerHTML = moParts.join('');
 }
 
 // Lifetime grid
@@ -9366,6 +9418,7 @@ function aimRenderLifetimeGrid(){
   const log = aimData.dailyLog || {};
   const sorted = Object.keys(log).sort((a,b)=>b.localeCompare(a));
   let totalTopics=0, totalRevs=0, totalFocus=0, perfectDays=0;
+  const lifeParts = [];
   sorted.forEach(ds=>{
     const e = log[ds];
     const g = aimGrade(e.score||0);
@@ -9373,12 +9426,13 @@ function aimRenderLifetimeGrid(){
     totalRevs   += e.revisions||0;
     totalFocus  += e.focusMin||0;
     if((e.score||0)>=90) perfectDays++;
-    el.innerHTML += `<div style="background:var(--bg2);border:1px solid ${g.color}33;border-radius:10px;padding:10px;text-align:center;cursor:pointer" title="${ds}">
+    lifeParts.push(`<div style="background:var(--bg2);border:1px solid ${g.color}33;border-radius:10px;padding:10px;text-align:center;cursor:pointer" title="${ds}">
       <div style="font-size:9px;color:var(--muted)">${ds.slice(5)}</div>
       <div style="font-family:'Instrument Serif',serif;font-size:22px;color:${g.color};line-height:1.2">${g.grade}</div>
       <div style="font-size:10px;color:var(--muted2)">${e.score||0}</div>
-    </div>`;
+    </div>`);
   });
+  el.innerHTML = lifeParts.join('');
   const total = document.getElementById('aim-lifetime-total');
   if(!sorted.length){ el.innerHTML=`<div style="color:var(--muted);font-size:12px;grid-column:1/-1;text-align:center;padding:20px">কোনো data নেই।</div>`; }
   total.innerHTML = `মোট ${sorted.length} দিন ট্র্যাক · ${totalTopics} topics · ${totalRevs} revisions · ${Math.round(totalFocus/60)} ঘণ্টা focus · ${perfectDays} perfect days ⭐`;
