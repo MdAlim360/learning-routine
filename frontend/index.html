@@ -7150,6 +7150,7 @@ function examDelCustomQ(i){
 // ── Start exam ──
 async function examStart(){
   examState.qCount = parseInt(document.getElementById('exam-q-count').innerText)||5;
+  examState.durationMin = parseInt(document.getElementById('exam-time-val').innerText)||0;
   examState.answers = [];
   examState.currentQ = 0;
 
@@ -7180,6 +7181,7 @@ async function examStart(){
     document.getElementById('exam-options').innerHTML = '';
     document.getElementById('exam-next-btn').style.display = 'none';
     await examFetchAIQuestions();
+    examTimerStart();
   }
 }
 
@@ -7238,7 +7240,6 @@ LANGUAGE RULE: ${examState.lang === 'en' ? 'ALL questions, options, and explanat
       options: q.options.sort(()=>Math.random()-.5)
     }));
     examRenderQuestion();
-    examTimerStart();
   } catch(e){
     // Fallback generic questions
     examState.questions = Array.from({length:n},(_,i)=>({
