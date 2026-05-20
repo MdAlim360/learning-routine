@@ -3256,7 +3256,13 @@ button, a, input, [onclick] {
 .fc-stack-cat-group.open .fc-stack-cat-chevron { transform: rotate(180deg); }
 
 .fc-stack-cat-body { display: none; padding: 14px; }
-.fc-stack-cat-group.open .fc-stack-cat-body { display: block; }
+.fc-stack-cat-group.open .fc-stack-cat-body {
+  display: block;
+  max-height: 600px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
 
 /* Subject level */
 .fc-stack-subj-group {
@@ -3281,7 +3287,14 @@ button, a, input, [onclick] {
 .fc-stack-subj-chevron { font-size: 10px; color: var(--muted); transition: transform .25s; }
 .fc-stack-subj-group.open .fc-stack-subj-chevron { transform: rotate(180deg); }
 .fc-stack-subj-body { display: none; padding: 10px 12px; }
-.fc-stack-subj-group.open .fc-stack-subj-body { display: flex; flex-direction: column; gap: 8px; }
+.fc-stack-subj-group.open .fc-stack-subj-body {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+  padding-right: 6px;
+}
 
 /* Topic stack card */
 .fc-topic-stack {
