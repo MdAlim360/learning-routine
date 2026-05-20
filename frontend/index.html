@@ -711,7 +711,7 @@ body::before {
   color:var(--accent2);
 }
 .aim-ai-report-body {
-  font-size:12px; color:var(--text); line-height:1.7; white-space:pre-wrap;
+  font-size:12px; color:var(--text); line-height:1.7; white-space:normal; word-break:break-word;
 }
 .aim-ai-report-loading {
   display:flex; align-items:center; gap:8px;
@@ -4264,6 +4264,18 @@ body::before {
         </div>
       </div>
 
+      <div class="exam-config-row" style="margin-top:10px">
+        <div>
+          <div class="exam-config-label">সময়সীমা (মিনিট)</div>
+          <div class="exam-config-sub">0 = কোনো সময়সীমা নেই</div>
+        </div>
+        <div class="exam-num-ctrl">
+          <button class="exam-num-btn" onclick="examAdjTime(-1)">−</button>
+          <div class="exam-num-val" id="exam-time-val">0</div>
+          <button class="exam-num-btn" onclick="examAdjTime(+1)">+</button>
+        </div>
+      </div>
+
       <!-- Custom questions area (hidden for auto) -->
       <div id="exam-custom-area" style="display:none">
         <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;font-weight:600">নিজের প্রশ্ন যোগ করো:</div>
@@ -4288,7 +4300,10 @@ body::before {
     <!-- STEP 3: Running exam -->
     <div class="exam-run-step" id="exam-step-run" style="display:none">
       <div class="exam-progress-bar"><div class="exam-progress-fill" id="exam-prog-fill" style="width:0%"></div></div>
-      <div class="exam-q-counter" id="exam-q-counter">প্রশ্ন 1 / 5</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="exam-q-counter" id="exam-q-counter">প্রশ্ন 1 / 5</div>
+        <div id="exam-timer-display" style="display:none;font-size:11px;font-weight:700;color:var(--gold2);background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.22);padding:3px 10px;border-radius:8px"><i class="fa-solid fa-clock"></i> <span id="exam-timer-text">--:--</span></div>
+      </div>
       <div class="exam-question" id="exam-question">
         <div class="exam-loading-q">
           <div class="ai-mot-dot"></div><div class="ai-mot-dot"></div><div class="ai-mot-dot"></div>
@@ -6994,15 +7009,19 @@ function openCompleteWithExam(id, name){
   examState.answers = [];
   examState.currentQ = 0;
   examState.qCount = 5;
+  examState.durationMin = 0;
   examState.mode = 'auto';
   examState.pendingCompleteUrl = null;
   examState.pendingFcCards = null;
 
+  clearInterval(examTimerInterval); examTimerInterval = null;
   document.getElementById('exam-topic-title').innerText = name;
   document.getElementById('exam-topic-meta').innerText  = subject + (category?' · '+category:'');
 
   // Reset to step 1
   examShowStep('choose');
+  document.getElementById('exam-time-val').innerText = '0';
+  document.getElementById('exam-timer-display').style.display = 'none';
   document.getElementById('exam-overlay').classList.add('visible');
 }
 
@@ -7013,6 +7032,7 @@ function examShowStep(step){
 }
 
 function examClose(){
+  clearInterval(examTimerInterval); examTimerInterval = null;
   document.getElementById('exam-overlay').classList.remove('visible');
 }
 
@@ -7031,6 +7051,60 @@ function examGoConfig(mode){
     : 'প্রশ্ন যোগ করো তারপর exam শুরু হবে।';
   document.getElementById('exam-custom-area').style.display = mode==='custom'?'block':'none';
   examShowStep('config');
+}
+
+// Exam timer state
+let examTimerInterval = null;
+let examTimerSecondsLeft = 0;
+
+function examAdjTime(delta){
+  const el = document.getElementById('exam-time-val');
+  let v = parseInt(el.innerText) + delta;
+  v = Math.max(0, Math.min(60, v));
+  el.innerText = v;
+  examState.durationMin = v;
+}
+
+function examTimerStart(){
+  clearInterval(examTimerInterval);
+  const mins = examState.durationMin || 0;
+  if(!mins){
+    document.getElementById('exam-timer-display').style.display = 'none';
+    return;
+  }
+  examTimerSecondsLeft = mins * 60;
+  document.getElementById('exam-timer-display').style.display = 'inline-flex';
+  examTimerUpdate();
+  examTimerInterval = setInterval(function(){
+    examTimerSecondsLeft--;
+    examTimerUpdate();
+    if(examTimerSecondsLeft <= 0){
+      clearInterval(examTimerInterval);
+      examTimerInterval = null;
+      // Time is up — auto-submit
+      document.getElementById('exam-timer-text').innerText = '00:00';
+      document.getElementById('exam-timer-display').style.background = 'rgba(224,90,122,.15)';
+      document.getElementById('exam-timer-display').style.borderColor = 'rgba(224,90,122,.4)';
+      document.getElementById('exam-timer-display').style.color = 'var(--rose)';
+      // Fill remaining answers as incorrect
+      const remaining = examState.questions.length - examState.answers.length;
+      for(let i=0; i<remaining; i++) examState.answers.push({selected:-1, correct:false});
+      setTimeout(examShowResult, 800);
+    }
+  }, 1000);
+}
+
+function examTimerUpdate(){
+  const m = Math.floor(examTimerSecondsLeft / 60);
+  const s = examTimerSecondsLeft % 60;
+  const str = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  document.getElementById('exam-timer-text').innerText = str;
+  // Turn red when < 30s
+  if(examTimerSecondsLeft <= 30){
+    document.getElementById('exam-timer-display').style.background = 'rgba(224,90,122,.15)';
+    document.getElementById('exam-timer-display').style.borderColor = 'rgba(224,90,122,.4)';
+    document.getElementById('exam-timer-display').style.color = 'var(--rose)';
+  }
 }
 
 function examAdjQ(delta){
@@ -7094,6 +7168,7 @@ async function examStart(){
     });
     examShowStep('run');
     examRenderQuestion();
+    examTimerStart();
   } else {
     // Auto: fetch from AI
     examShowStep('run');
@@ -7134,23 +7209,24 @@ async function examFetchAIQuestions(){
       body:JSON.stringify({
         model:"claude-sonnet-4-20250514",
         max_tokens:1800,
-        system:`তুমি একজন expert question setter। তোমাকে একটি topic-এর উপর MCQ তৈরি করতে হবে।
+        system:`You are an expert question setter. Generate MCQ questions for a given topic.
 STRICT JSON ONLY — no markdown, no extra text.
 Format:
 [
   {
-    "q": "প্রশ্ন (বাংলা বা English, topic অনুযায়ী)",
+    "q": "question text",
     "options": [
-      {"text":"সঠিক উত্তর", "correct":true},
-      {"text":"ভুল ১", "correct":false},
-      {"text":"ভুল ২", "correct":false},
-      {"text":"ভুল ৩", "correct":false}
+      {"text":"correct answer", "correct":true},
+      {"text":"wrong 1", "correct":false},
+      {"text":"wrong 2", "correct":false},
+      {"text":"wrong 3", "correct":false}
     ],
-    "explain": "কেন এটা সঠিক — এক বাক্যে"
+    "explain": "one sentence explanation of why the answer is correct"
   }
 ]
-নিয়ম: options এ সর্বদা 4টি থাকবে, random order এ। প্রশ্নগুলো conceptual ও varied হবে।`,
-        messages:[{role:"user", content:`Topic: "${topic}", Subject: "${subject}", Category: "${category}"\nমোট ${n}টি MCQ তৈরি করো।`}]
+Rules: always 4 options, varied order. Questions must be conceptual and diverse.
+LANGUAGE RULE: ${examState.lang === 'en' ? 'ALL questions, options, and explanations MUST be written in ENGLISH only. Do NOT use Bengali/Bangla under any circumstances.' : 'ALL questions, options, and explanations MUST be written in Bengali (বাংলা) only. Do NOT use English.'}`,
+        messages:[{role:"user", content:`Topic: "${topic}", Subject: "${subject}", Category: "${category}"\nGenerate exactly ${n} MCQ questions. Language: ${examState.lang === 'en' ? 'ENGLISH ONLY' : 'BENGALI ONLY'}`}]
       })
     });
     const data = await res.json();
@@ -7162,6 +7238,7 @@ Format:
       options: q.options.sort(()=>Math.random()-.5)
     }));
     examRenderQuestion();
+    examTimerStart();
   } catch(e){
     // Fallback generic questions
     examState.questions = Array.from({length:n},(_,i)=>({
@@ -7233,6 +7310,7 @@ function examNext(){
 }
 
 function examShowResult(){
+  clearInterval(examTimerInterval); examTimerInterval = null;
   const correct = examState.answers.filter(a=>a.correct).length;
   const total   = examState.questions.length;
   const pct     = total ? Math.round(correct/total*100) : 0;
@@ -7681,12 +7759,14 @@ async function aimForceMode(){
 
 
 function formatAIMsg(text){
+  // Sanitize: remove any invalid unicode replacement chars or box chars
+  let t = text.replace(/[\uFFFD\u25A1\u25A0\u2610\u2611]/g, '');
   // newline → <br>
-  let t = text.replace(/\n/g, '<br>');
+  t = t.replace(/\n/g, '<br>');
   // **bold** → <strong>
   t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   // Add some spacing for readability
-  return '<span style="line-height:1.8;display:block">'+t+'</span>';
+  return '<span style="line-height:1.8;display:block;word-break:break-word;white-space:normal">'+t+'</span>';
 }
 function aimAddMsg(type, text){
   const chatBox = document.getElementById('aim-chat-box');
