@@ -7,14 +7,11 @@ const https = require('https');
 
 const app = express();
 
-// ===================== MIDDLEWARE =====================
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// ===================== MONGODB CONNECTION =====================
 const MONGODB_URI = process.env.MONGODB_URI;
-
 if (!MONGODB_URI) {
   console.error('❌ MONGODB_URI environment variable not set!');
   process.exit(1);
@@ -32,8 +29,6 @@ mongoose.connect(MONGODB_URI, {
 
 mongoose.connection.on('disconnected', () => console.warn('⚠️  MongoDB Disconnected'));
 mongoose.connection.on('reconnected', () => console.log('🔄 MongoDB Reconnected'));
-
-// ===================== MONGOOSE SCHEMAS =====================
 
 const topicSchema = new mongoose.Schema({
   id: { type: Number, required: true, unique: true },
@@ -67,7 +62,6 @@ const Topic = mongoose.model('Topic', topicSchema);
 const Routine = mongoose.model('Routine', routineSchema);
 const KV = mongoose.model('KV', kvSchema);
 
-// ===================== HELPER =====================
 async function getAllTopicsGrouped() {
   const allTopics = await Topic.find({}).lean();
   const grouped = {};
@@ -78,8 +72,6 @@ async function getAllTopicsGrouped() {
   });
   return grouped;
 }
-
-// ===================== ROUTES: TOPICS =====================
 
 app.get('/api/topics', async (req, res) => {
   try {
@@ -93,9 +85,7 @@ app.get('/api/topics', async (req, res) => {
 app.post('/api/topics', async (req, res) => {
   try {
     const topicData = req.body;
-    if (!topicData.id) {
-      topicData.id = Date.now() + Math.floor(Math.random() * 1000);
-    }
+    if (!topicData.id) topicData.id = Date.now() + Math.floor(Math.random() * 1000);
     const topic = new Topic(topicData);
     await topic.save();
     const grouped = await getAllTopicsGrouped();
@@ -147,11 +137,7 @@ app.post('/api/topics/bulk', async (req, res) => {
       dbTopics[dateStr].forEach(t => allTopics.push(t));
     });
     for (const topic of allTopics) {
-      await Topic.findOneAndUpdate(
-        { id: topic.id },
-        topic,
-        { upsert: true, new: true }
-      );
+      await Topic.findOneAndUpdate({ id: topic.id }, topic, { upsert: true, new: true });
     }
     const grouped = await getAllTopicsGrouped();
     res.json({ success: true, data: grouped, message: `${allTopics.length} topics synced!` });
@@ -159,8 +145,6 @@ app.post('/api/topics/bulk', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// ===================== ROUTES: ROUTINE =====================
 
 const defaultRoutine = {
   "Saturday": [["AI Engineering – L2", "JavaScript", "Typing Practice"], ["Structure–II", "R.C.C–II"], ["Geography", "English"], ["English Speaking"], ["QGIS"], ["Machine Learning"]],
@@ -175,11 +159,7 @@ const defaultRoutine = {
 app.get('/api/routine', async (req, res) => {
   try {
     let routineDoc = await Routine.findOne({ userId: 'default' }).lean();
-    if (!routineDoc) {
-      res.json({ success: true, data: defaultRoutine });
-    } else {
-      res.json({ success: true, data: routineDoc.routine });
-    }
+    res.json({ success: true, data: routineDoc ? routineDoc.routine : defaultRoutine });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -198,8 +178,6 @@ app.put('/api/routine', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// ===================== ROUTES: KEY-VALUE STORE =====================
 
 app.get('/api/kv/:key', async (req, res) => {
   try {
@@ -225,21 +203,18 @@ app.put('/api/kv/:key', async (req, res) => {
 });
 
 // ===================== AI PROXY — Gemini (ফ্রি!) =====================
-// Frontend থেকে Anthropic format এ আসে, server এটাকে Gemini format এ convert করে পাঠায়
 app.post('/api/ai', (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   if (!GEMINI_API_KEY) {
     return res.status(500).json({ error: 'GEMINI_API_KEY environment variable not set!' });
   }
 
-  // Anthropic format → Gemini format convert
   const { system, messages, max_tokens } = req.body;
 
+  // Gemini format এ convert
   const contents = [];
-  if (system) {
-    contents.push({ role: 'user', parts: [{ text: '[System instruction]: ' + system }] });
-    contents.push({ role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] });
-  }
+
+  // messages convert
   (messages || []).forEach(m => {
     contents.push({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -247,7 +222,14 @@ app.post('/api/ai', (req, res) => {
     });
   });
 
+  // যদি contents empty হয়, একটা dummy message দাও
+  if (contents.length === 0) {
+    contents.push({ role: 'user', parts: [{ text: 'Hello' }] });
+  }
+
   const geminiBody = JSON.stringify({
+    // system instruction আলাদাভাবে পাঠাও — এটাই সঠিক Gemini format
+    system_instruction: system ? { parts: [{ text: system }] } : undefined,
     contents,
     generationConfig: { maxOutputTokens: max_tokens || 1000 }
   });
@@ -270,16 +252,20 @@ app.post('/api/ai', (req, res) => {
     apiRes.on('end', () => {
       try {
         const parsed = JSON.parse(data);
-        // Gemini response → Anthropic format এ convert করে frontend এ পাঠাও
+        console.log('Gemini status:', apiRes.statusCode);
+        console.log('Gemini response:', JSON.stringify(parsed).slice(0, 300));
+
         const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
         res.json({ content: [{ type: 'text', text }] });
       } catch (e) {
+        console.error('Gemini parse error:', e.message, 'raw:', data.slice(0, 300));
         res.status(500).json({ error: 'Invalid response from Gemini', raw: data });
       }
     });
   });
 
   apiReq.on('error', (err) => {
+    console.error('Gemini request error:', err.message);
     res.status(500).json({ error: err.message });
   });
 
@@ -287,7 +273,6 @@ app.post('/api/ai', (req, res) => {
   apiReq.end();
 });
 
-// ===================== HEALTH CHECK =====================
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -296,12 +281,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ===================== CATCH ALL: Serve frontend =====================
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// ===================== START SERVER =====================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
