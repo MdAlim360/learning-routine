@@ -6266,7 +6266,7 @@ function renderRadar(){
     }
     const diff=_radarDiff(t.completionDate, activeDateMs);
     if(_RADAR_MILESTONES.has(diff)){
-      const done=(t.reviewsDone||[]).includes(diff);
+      const done=(t.reviewsDone||[]).map(String).includes(String(diff));
       if(done){
         doneCount++;
         tmp.innerHTML=`<div class="radar-item done">
@@ -6333,9 +6333,12 @@ async function toggleMilestone(id,day,mark){
       if(!t.reviewsDone)t.reviewsDone=[];
       if(!t.reviewHistoryStamps)t.reviewHistoryStamps={};
       if(mark){
-        if(!t.reviewsDone.includes(day)){t.reviewsDone.push(day);t.reviewHistoryStamps[day]=activeDate;}
+        const dayStr=String(day);
+        if(!t.reviewsDone.map(String).includes(dayStr)){t.reviewsDone.push(dayStr);t.reviewHistoryStamps[dayStr]=activeDate;}
       }else{
-        t.reviewsDone=t.reviewsDone.filter(m=>m!==day);
+        const dayStr=String(day);
+        t.reviewsDone=t.reviewsDone.filter(m=>String(m)!==dayStr);
+        delete t.reviewHistoryStamps[dayStr];
         delete t.reviewHistoryStamps[day];
       }
       // Deep copy to avoid shallow reference bug — reviewsDone/reviewHistoryStamps must be cloned
@@ -6827,7 +6830,7 @@ function pomoSyncTopics(){
     // Auto milestone revision due today (day 1/3/7/30)
     const diff = Math.round(Math.abs(td - new Date(t.completionDate))/(1000*60*60*24));
     if([1,3,7,30].includes(diff)){
-      const alreadyDone = (t.reviewsDone||[]).includes(diff);
+      const alreadyDone = (t.reviewsDone||[]).map(String).includes(String(diff));
       if(!alreadyDone && !activeNames.has(t.topicName)){
         activeNames.add(t.topicName);
         activeTopicMeta[t.topicName] = {
@@ -10003,7 +10006,7 @@ function aimTodayStats(){
     Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
       if(t.status!=='Complete') return;
       const diff=Math.round(Math.abs(new Date(d)-new Date(t.completionDate))/(86400000));
-      if([1,3,7,30].includes(diff)&&(t.reviewsDone||[]).includes(diff)) r++;
+      if([1,3,7,30].includes(diff)&&(t.reviewsDone||[]).map(String).includes(String(diff))) r++;
       if((t.customReviewHistoryDates||[]).includes(d)) r++;
     }));
     return r;
