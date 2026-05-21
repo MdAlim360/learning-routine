@@ -6110,16 +6110,78 @@ function renderRadar(){
   else c.appendChild(frag);
 }
 async function toggleMilestone(id,day,mark){
-  let u=null;
-  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){if(!t.reviewsDone)t.reviewsDone=[];if(!t.reviewHistoryStamps)t.reviewHistoryStamps={};if(mark){if(!t.reviewsDone.includes(day)){t.reviewsDone.push(day);t.reviewHistoryStamps[day]=activeDate;}triggerSurprise();gmOnRevision(false);}else{t.reviewsDone=t.reviewsDone.filter(m=>m!==day);delete t.reviewHistoryStamps[day];}u={...t};}}) );
+  // Capture previous state for rollback on error
+  let u=null, prevSnapshot=null;
+  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+    if(t.id===id){
+      prevSnapshot={...t, reviewsDone:[...(t.reviewsDone||[])], reviewHistoryStamps:{...(t.reviewHistoryStamps||{})}};
+      if(!t.reviewsDone)t.reviewsDone=[];
+      if(!t.reviewHistoryStamps)t.reviewHistoryStamps={};
+      if(mark){
+        if(!t.reviewsDone.includes(day)){t.reviewsDone.push(day);t.reviewHistoryStamps[day]=activeDate;}
+      }else{
+        t.reviewsDone=t.reviewsDone.filter(m=>m!==day);
+        delete t.reviewHistoryStamps[day];
+      }
+      u={...t};
+    }
+  }));
+  // Optimistic UI update
   renderDaily(); htbRefresh();
-  if(u){try{showSync('Saving…');dbTopics=await apiPut(`/topics/${id}`,u);}catch(e){showApiError('Save হয়নি — আবার try করুন।');}finally{hideSync();}}
+  if(u){
+    try{
+      showSync('Saving…');
+      dbTopics=await apiPut(`/topics/${id}`,u);
+      // Only trigger XP/surprise after confirmed save
+      if(mark){ triggerSurprise(); gmOnRevision(false); }
+    }catch(e){
+      // Rollback in-memory state
+      if(prevSnapshot){
+        Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+          if(t.id===id){
+            t.reviewsDone=prevSnapshot.reviewsDone;
+            t.reviewHistoryStamps=prevSnapshot.reviewHistoryStamps;
+          }
+        }));
+      }
+      renderDaily(); htbRefresh();
+      showApiError('Save হয়নি — আবার try করুন।');
+    }finally{hideSync();}
+  }
 }
 async function approveCustomRev(id){
-  let u=null;
-  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){if(!t.customReviewHistoryDates)t.customReviewHistoryDates=[];t.customReviewHistoryDates.push(activeDate);t.customRevPendingOn=null;u={...t};triggerSurprise();gmOnRevision(true);}}) );
+  let u=null, prevSnapshot=null;
+  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+    if(t.id===id){
+      prevSnapshot={...t, customReviewHistoryDates:[...(t.customReviewHistoryDates||[])], customRevPendingOn:t.customRevPendingOn};
+      if(!t.customReviewHistoryDates)t.customReviewHistoryDates=[];
+      t.customReviewHistoryDates.push(activeDate);
+      t.customRevPendingOn=null;
+      u={...t};
+    }
+  }));
+  // Optimistic UI update
   renderDaily(); htbRefresh();
-  if(u){try{showSync('Saving…');dbTopics=await apiPut(`/topics/${id}`,u);}catch(e){showApiError('Save হয়নি — আবার try করুন।');}finally{hideSync();}}
+  if(u){
+    try{
+      showSync('Saving…');
+      dbTopics=await apiPut(`/topics/${id}`,u);
+      // Only trigger XP/surprise after confirmed save
+      triggerSurprise(); gmOnRevision(true);
+    }catch(e){
+      // Rollback in-memory state
+      if(prevSnapshot){
+        Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+          if(t.id===id){
+            t.customReviewHistoryDates=prevSnapshot.customReviewHistoryDates;
+            t.customRevPendingOn=prevSnapshot.customRevPendingOn;
+          }
+        }));
+      }
+      renderDaily(); htbRefresh();
+      showApiError('Save হয়নি — আবার try করুন।');
+    }finally{hideSync();}
+  }
 }
 
 // ── TAB 3: PROGRESS ──
@@ -6338,10 +6400,24 @@ function showHistory(ds){
   cont.appendChild(frag);
 }
 async function sendToRadar(id){
-  let u=null;
-  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){t.customRevPendingOn=activeDate;u={...t};}}) );
-  triggerSurprise(4); renderProgress();
-  if(u){try{showSync('Sending…');dbTopics=await apiPut(`/topics/${id}`,u);}catch(e){showApiError('Save হয়নি — আবার try করুন।');}finally{hideSync();}}
+  let u=null, prevPending=null;
+  Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+    if(t.id===id){ prevPending=t.customRevPendingOn; t.customRevPendingOn=activeDate; u={...t}; }
+  }));
+  renderProgress();
+  if(u){
+    try{
+      showSync('Sending…');
+      dbTopics=await apiPut(`/topics/${id}`,u);
+      triggerSurprise(4);
+    }catch(e){
+      Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{
+        if(t.id===id){ t.customRevPendingOn=prevPending; }
+      }));
+      renderProgress();
+      showApiError('Save হয়নি — আবার try করুন।');
+    }finally{hideSync();}
+  }
 }
 function renderCleaner(){
   const tb=document.getElementById('cleaner-tbody');
