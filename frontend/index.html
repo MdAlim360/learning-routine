@@ -6236,7 +6236,8 @@ async function toggleMilestone(id,day,mark){
         t.reviewsDone=t.reviewsDone.filter(m=>m!==day);
         delete t.reviewHistoryStamps[day];
       }
-      u={...t};
+      // Deep copy to avoid shallow reference bug — reviewsDone/reviewHistoryStamps must be cloned
+      u={...t, reviewsDone:[...(t.reviewsDone||[])], reviewHistoryStamps:{...(t.reviewHistoryStamps||{})}};
     }
   }));
   // Optimistic UI update
@@ -6270,7 +6271,9 @@ async function approveCustomRev(id){
       if(!t.customReviewHistoryDates)t.customReviewHistoryDates=[];
       t.customReviewHistoryDates.push(activeDate);
       t.customRevPendingOn=null;
-      u={...t};
+      // Deep copy to avoid shallow reference bug
+      u={...t, customReviewHistoryDates:[...(t.customReviewHistoryDates||[])]};
+
     }
   }));
   // Optimistic UI update
