@@ -110,7 +110,7 @@ app.post('/api/topics', async (req, res) => {
 app.put('/api/topics/:id', async (req, res) => {
   try {
     const topicId = parseInt(req.params.id);
-    await Topic.findOneAndUpdate({ id: topicId }, req.body, { new: true });
+    await Topic.findOneAndUpdate({ id: topicId }, { $set: req.body }, { new: true });
     const grouped = await getAllTopicsGrouped();
     res.json({ success: true, data: grouped });
   } catch (err) {
@@ -137,7 +137,7 @@ app.post('/api/topics/bulk', async (req, res) => {
       dbTopics[dateStr].forEach(t => allTopics.push(t));
     });
     for (const topic of allTopics) {
-      await Topic.findOneAndUpdate({ id: topic.id }, topic, { upsert: true, new: true });
+      await Topic.findOneAndUpdate({ id: topic.id }, { $set: topic }, { upsert: true, new: true });
     }
     const grouped = await getAllTopicsGrouped();
     res.json({ success: true, data: grouped, message: `${allTopics.length} topics synced!` });
