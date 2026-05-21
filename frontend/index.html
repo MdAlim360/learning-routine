@@ -7886,6 +7886,7 @@ function fcRate(rating){
   if(idx !== -1) fcCards[idx] = updated;
   fcSave(fcCards);
   gmOnFlashcard();
+  htbRefresh();
   // Move to next
   fcSessionIdx++;
   if(fcSessionIdx >= fcSessionCards.length){
@@ -9243,11 +9244,13 @@ function gmEarnXP(type, amount, label){
   // weekly log: track by ISO week key
   const wk = gmWeekKey(new Date());
   if(!d.weeklyLog) d.weeklyLog = {};
-  if(!d.weeklyLog[wk]) d.weeklyLog[wk] = { xp:0, topics:0, revs:0, pomoSessions:0 };
+  if(!d.weeklyLog[wk]) d.weeklyLog[wk] = { xp:0, topics:0, revs:0, pomoSessions:0, flash:0 };
+  if(!d.weeklyLog[wk].flash) d.weeklyLog[wk].flash = 0;
   d.weeklyLog[wk].xp += amount;
   if(type==='topic')  d.weeklyLog[wk].topics++;
   if(type==='rev')    d.weeklyLog[wk].revs++;
   if(type==='pomo')   d.weeklyLog[wk].pomoSessions++;
+  if(type==='flash')  d.weeklyLog[wk].flash++;
 
   gmSave(d);
   gmShowXPToast('+' + amount + ' XP', label || '');
