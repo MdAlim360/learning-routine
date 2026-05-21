@@ -1378,6 +1378,71 @@ button, a, input, [onclick] {
   align-items: center;
   gap: 6px;
 }
+
+/* ─── CATEGORY SECTION BLOCK ─── */
+.cat-section-block {
+  margin-bottom: 20px;
+}
+.cat-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 10px 16px;
+  border-radius: 14px 14px 0 0;
+  border: 1px solid;
+  border-bottom: none;
+  position: relative;
+}
+.cat-section-header-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+.cat-section-header-name {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  flex: 1;
+}
+.cat-section-header-count {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 99px;
+  opacity: 0.85;
+}
+.cat-section-body {
+  border: 1px solid;
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Subject sub-label inside category block */
+.cat-subj-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  margin-top: 4px;
+}
+.cat-subj-label:first-child { margin-top: 0; }
+.cat-subj-label::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 12px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.35;
+  flex-shrink: 0;
+}
+.cat-subj-topics { display: flex; flex-direction: column; gap: 6px; }
 .topic-item {
   display: flex;
   justify-content: space-between;
@@ -5929,43 +5994,91 @@ function _doRenderDaily(){
   const complete=recs.filter(t=>t.status==='Complete');
   const liveC=document.getElementById('live-container');
   liveC.innerHTML='';
-  const subjects=[...new Set(pending.map(t=>t.subject))];
-  if(!subjects.length){
+  if(!pending.length){
     liveC.innerHTML=`<div class="empty"><i class="fa-solid fa-inbox"></i>আজকের কোনো রানিং টপিক নেই। উপরের ইনজেক্টর থেকে অ্যাড করুন।</div>`;
   } else {
-    // Pre-group topics by subject to avoid O(subjects × pending) repeated filter
-    const bySubject = Object.create(null);
-    for(let i=0;i<pending.length;i++){ const t=pending[i]; (bySubject[t.subject]||(bySubject[t.subject]=[])).push(t); }
-    const pmAll = pmCache || {}; // read plan cache once
-    subjects.forEach(sub=>{
-      const div=document.createElement('div');
-      div.className='topic-group';
-      let html=`<div class="topic-group-name"><i class="fa-solid fa-bookmark"></i> ${sub}</div>`;
-      (bySubject[sub]||[]).forEach(t=>{
-        const overdue=t.originDate&&t.originDate!==activeDate;
-        const planItems=(pmAll[t.id]||[]);
-        const hasPlan=planItems.length>0;
-        html+=`<div class="topic-item">
-          <div style="flex:1;min-width:0">
-            <div class="topic-name">${t.topicName}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
-              <span class="topic-cat-badge">${t.category}</span>
-              ${overdue?`<span class="pending-badge"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px"></i> Since ${t.originDate}</span>`:''}
+    const pmAll = pmCache || {};
+    // ── Group by Category → Subject (preserving cats order) ──
+    const byCat = Object.create(null);
+    for(let i=0;i<pending.length;i++){
+      const t=pending[i];
+      if(!byCat[t.category]) byCat[t.category]=Object.create(null);
+      if(!byCat[t.category][t.subject]) byCat[t.category][t.subject]=[];
+      byCat[t.category][t.subject].push(t);
+    }
+    // Cat color map (raw rgba values for flexible use)
+    const catRgb = {
+      [cats[0]]: {r:'166,149,255', hex:'#a695ff'},
+      [cats[1]]: {r:'240,140,168', hex:'#f08ca8'},
+      [cats[2]]: {r:'245,200,105', hex:'#f5c869'},
+      [cats[3]]: {r:'62,207,170',  hex:'#3ecfaa'},
+      [cats[4]]: {r:'77,184,240',  hex:'#4db8f0'},
+      [cats[5]]: {r:'240,180,100', hex:'#f0b464'},
+    };
+    const frag = document.createDocumentFragment();
+    // Render in cats order, then any uncategorized
+    const orderedCats = cats.filter(c=>byCat[c]);
+    const extraCats = Object.keys(byCat).filter(c=>!cats.includes(c));
+    [...orderedCats, ...extraCats].forEach(cat=>{
+      const cr = catRgb[cat] || {r:'168,177,192', hex:'#a8b1c0'};
+      const subMap = byCat[cat];
+      const totalCount = Object.values(subMap).reduce((s,a)=>s+a.length,0);
+      const block = document.createElement('div');
+      block.className = 'cat-section-block';
+      // Header
+      const hdr = document.createElement('div');
+      hdr.className = 'cat-section-header';
+      hdr.style.cssText = `background:rgba(${cr.r},0.07);border-color:rgba(${cr.r},0.22);`;
+      hdr.innerHTML = `
+        <span class="cat-section-header-dot" style="background:${cr.hex};box-shadow:0 0 8px rgba(${cr.r},0.45)"></span>
+        <span class="cat-section-header-name" style="color:${cr.hex}">${cat}</span>
+        <span class="cat-section-header-count" style="background:rgba(${cr.r},0.14);color:${cr.hex};border:1px solid rgba(${cr.r},0.25)">${totalCount} topic${totalCount!==1?'s':''}</span>`;
+      block.appendChild(hdr);
+      // Body
+      const body = document.createElement('div');
+      body.className = 'cat-section-body';
+      body.style.cssText = `background:rgba(${cr.r},0.03);border-color:rgba(${cr.r},0.15);`;
+      Object.keys(subMap).forEach(sub=>{
+        // Subject label
+        const subjLbl = document.createElement('div');
+        subjLbl.className = 'cat-subj-label';
+        subjLbl.style.color = cr.hex;
+        subjLbl.innerHTML = `<i class="fa-solid fa-bookmark" style="font-size:9px;opacity:0.6"></i>${sub}`;
+        body.appendChild(subjLbl);
+        // Topics under this subject
+        const topicsWrap = document.createElement('div');
+        topicsWrap.className = 'cat-subj-topics';
+        subMap[sub].forEach(t=>{
+          const overdue=t.originDate&&t.originDate!==activeDate;
+          const planItems=(pmAll[t.id]||[]);
+          const hasPlan=planItems.length>0;
+          const itemEl = document.createElement('div');
+          itemEl.className = 'topic-item';
+          itemEl.style.cssText = `border-color:rgba(${cr.r},0.12);`;
+          itemEl.innerHTML = `
+            <div style="flex:1;min-width:0">
+              <div class="topic-name">${t.topicName}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+                ${overdue?`<span class="pending-badge"><i class="fa-solid fa-triangle-exclamation" style="font-size:8px"></i> Since ${t.originDate}</span>`:''}
+              </div>
             </div>
-          </div>
-          <div class="topic-actions">
-            <div class="shift-wrap">
-              <button class="shift-btn"><i class="fa-regular fa-calendar-days"></i> Shift</button>
-              <input type="date" onchange="moveTopic(${t.id},this.value)">
-            </div>
-            <button class="plan-map-btn ${hasPlan?'has-plan':''}" onclick="pmOpen(${t.id})"><i class="fa-solid fa-map"></i> Plan${hasPlan?' ✦':''}</button>
-            <button class="complete-btn" onclick="openCompleteModal(${t.id},'${t.topicName.replace(/'/g,"\\'")}')">✅ Done</button>
-            <button class="del-btn" onclick="triggerPurge(${t.id})"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </div>`;
+            <div class="topic-actions">
+              <div class="shift-wrap">
+                <button class="shift-btn"><i class="fa-regular fa-calendar-days"></i> Shift</button>
+                <input type="date" onchange="moveTopic(${t.id},this.value)">
+              </div>
+              <button class="plan-map-btn ${hasPlan?'has-plan':''}" onclick="pmOpen(${t.id})"><i class="fa-solid fa-map"></i> Plan${hasPlan?' ✦':''}</button>
+              <button class="complete-btn" onclick="openCompleteModal(${t.id},'${t.topicName.replace(/'/g,"\\'")}')">✅ Done</button>
+              <button class="del-btn" onclick="triggerPurge(${t.id})"><i class="fa-solid fa-trash"></i></button>
+            </div>`;
+          topicsWrap.appendChild(itemEl);
+        });
+        body.appendChild(topicsWrap);
       });
-      div.innerHTML=html; liveC.appendChild(div);
+      block.appendChild(body);
+      frag.appendChild(block);
     });
+    liveC.appendChild(frag);
   }
   const compC=document.getElementById('completed-container');
   compC.innerHTML='';
