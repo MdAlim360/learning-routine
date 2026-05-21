@@ -144,6 +144,11 @@ button, a, input, [onclick] {
   border-color: var(--border2);
   color: var(--text);
 }
+.htb-chip.has-due {
+  background: rgba(224,90,122,0.08);
+  border-color: rgba(224,90,122,0.25);
+  color: var(--text);
+}
 
 /* ─── PLAN MAP BUTTON ─── */
 .plan-map-btn {
@@ -1388,6 +1393,16 @@ button, a, input, [onclick] {
 .topic-item:hover {
   border-color: var(--border2);
   background: rgba(255,255,255,0.03);
+}
+
+/* Newly added topic highlight */
+@keyframes topicNewPulse {
+  0%   { border-color: rgba(62,207,170,0.7); box-shadow: 0 0 0 3px rgba(62,207,170,0.18); background: rgba(62,207,170,0.1); }
+  60%  { border-color: rgba(62,207,170,0.4); box-shadow: 0 0 0 6px rgba(62,207,170,0.06); background: rgba(62,207,170,0.06); }
+  100% { border-color: var(--border); box-shadow: none; background: var(--bg2); }
+}
+.topic-item-new {
+  animation: topicNewPulse 2.2s cubic-bezier(0.4,0,0.2,1) forwards;
 }
 .topic-name { font-size: 12px; color: var(--text); font-weight: 400; flex: 1; }
 .topic-cat-badge {
@@ -4527,9 +4542,9 @@ button, a, input, [onclick] {
   </div>
   <!-- Quick Today Stats Bar -->
   <div id="header-today-bar" style="display:flex;justify-content:center;margin-top:16px;gap:12px;flex-wrap:wrap;padding:0 16px">
-    <div class="htb-chip" id="htb-topics" title="আজ যতটা topic শেষ করেছো">
+    <div class="htb-chip" id="htb-topics" title="আজ কতটা topic শেষ করেছো / মোট কতটা আছে">
       <i class="fa-solid fa-check-circle" style="color:var(--teal)"></i>
-      <span id="htb-topics-val">0</span> topics
+      <span id="htb-topics-val">0</span><span id="htb-topics-due" style="color:var(--muted);font-size:10px"></span> topics
     </div>
     <div class="htb-chip" id="htb-revs" title="আজ যতটা revision হয়েছে">
       <i class="fa-solid fa-rotate" style="color:var(--gold2)"></i>
@@ -5747,6 +5762,7 @@ window.onload=async function(){
   renderRoutine(); setupInjector();
   requestAnimationFrame(()=>{
     renderDaily(); skRender(); fcUpdateNavBadge(); gmUpdatePill();
+    setTimeout(htbRefresh, 300); // header today bar initial load
   });
 };
 
@@ -5832,11 +5848,50 @@ async function handleInject(){
   const sub=document.getElementById('inj-sub').value;
   const topic=document.getElementById('inj-topic').value.trim();
   if(!sub||sub.startsWith('—')||!topic){cAlert('Subject এবং Topic বেছে নাও।',{title:'কিছু বাকি',type:'warning'});return;}
-  const rec={id:Date.now(),date:activeDate,originDate:activeDate,completionDate:null,category:cats[ci],subject:sub,topicName:topic,noteUrl:null,status:'Pending',reviewsDone:[],reviewHistoryStamps:{},customRevPendingOn:null,customReviewHistoryDates:[]};
+
+  // ── Button loading state ──
+  const btn = document.querySelector('.inject-btn');
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Adding…';
+  btn.disabled = true;
+  btn.style.opacity = '0.75';
+
+  const newId = Date.now();
+  const rec={id:newId,date:activeDate,originDate:activeDate,completionDate:null,category:cats[ci],subject:sub,topicName:topic,noteUrl:null,status:'Pending',reviewsDone:[],reviewHistoryStamps:{},customRevPendingOn:null,customReviewHistoryDates:[]};
   document.getElementById('inj-topic').value='';
   if(!dbTopics[activeDate]) dbTopics[activeDate]=[];
   dbTopics[activeDate].push(rec);
   renderDaily();
+  htbRefresh();
+
+  // ── Highlight the newly added topic item ──
+  setTimeout(()=>{
+    const allItems = document.querySelectorAll('.topic-item');
+    // Find the one with matching topic name (last added)
+    for(const item of allItems){
+      const nameEl = item.querySelector('.topic-name');
+      if(nameEl && nameEl.textContent === topic){
+        item.classList.add('topic-item-new');
+        item.scrollIntoView({behavior:'smooth', block:'nearest'});
+        setTimeout(()=>item.classList.remove('topic-item-new'), 2500);
+        break;
+      }
+    }
+  }, 80);
+
+  // ── Button success state ──
+  btn.innerHTML = '<i class="fa-solid fa-check"></i> Added!';
+  btn.style.background = 'linear-gradient(135deg, var(--teal), #2aab87)';
+  btn.style.boxShadow = '0 4px 18px rgba(62,207,170,0.35)';
+  btn.style.opacity = '1';
+
+  setTimeout(()=>{
+    btn.innerHTML = origHTML;
+    btn.style.background = '';
+    btn.style.boxShadow = '';
+    btn.disabled = false;
+  }, 1800);
+
   try{
     showSync('Adding…');
     dbTopics=await apiPost('/topics',rec);
@@ -5845,6 +5900,14 @@ async function handleInject(){
     // rollback
     dbTopics[activeDate]=dbTopics[activeDate].filter(t=>t.id!==rec.id);
     renderDaily();
+    // Button error state
+    btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Failed';
+    btn.style.background = 'linear-gradient(135deg, var(--rose), #b73057)';
+    setTimeout(()=>{
+      btn.innerHTML = origHTML;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
     showApiError('Topic add হয়নি — internet বা server সমস্যা। আবার try করুন।');
   }finally{hideSync();}
 }
@@ -5958,14 +6021,14 @@ function goalCelebrate(target){
 async function revertPending(id){
   let updated=null;
   Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){t.status='Pending';t.completionDate=null;t.reviewsDone=[];t.reviewHistoryStamps={};t.customRevPendingOn=null;t.customReviewHistoryDates=[];updated={...t};}}) );
-  renderDaily();
+  renderDaily(); htbRefresh();
   if(updated){try{showSync('Reverting…');dbTopics=await apiPut(`/topics/${id}`,updated);}catch(e){showApiError('Revert হয়নি — আবার try করুন।');}finally{hideSync();}}
 }
 async function moveTopic(id,nd){
   if(!nd) return;
   let found=null;
   Object.keys(dbTopics).forEach(d=>{const i=dbTopics[d].findIndex(t=>t.id===id);if(i!==-1){found={...dbTopics[d][i]};if(!found.originDate)found.originDate=d;dbTopics[d].splice(i,1);}});
-  if(found){found.date=nd;if(!dbTopics[nd])dbTopics[nd]=[];dbTopics[nd].push(found);renderDaily();try{showSync('Shifting…');dbTopics=await apiPut(`/topics/${id}`,found);}catch(e){showApiError('Date shift হয়নি — আবার try করুন।');}finally{hideSync();}}
+  if(found){found.date=nd;if(!dbTopics[nd])dbTopics[nd]=[];dbTopics[nd].push(found);renderDaily();htbRefresh();try{showSync('Shifting…');dbTopics=await apiPut(`/topics/${id}`,found);}catch(e){showApiError('Date shift হয়নি — আবার try করুন।');}finally{hideSync();}}
 }
 function triggerPurge(id){
   purgeId=id;
@@ -5976,7 +6039,7 @@ async function doPurge(){
   if(!purgeId) return;
   const id=purgeId;
   Object.keys(dbTopics).forEach(d=>{dbTopics[d]=dbTopics[d].filter(t=>t.id!==id);});
-  closeModal('m-purge'); renderDaily();
+  closeModal('m-purge'); renderDaily(); htbRefresh();
   if(!document.getElementById('view-progress').classList.contains('active')) renderProgress();
   try{showSync('Deleting…');dbTopics=await apiDel(`/topics/${id}`);}catch(e){showApiError('Delete হয়নি — আবার try করুন।');}finally{hideSync();}
 }
@@ -6049,13 +6112,13 @@ function renderRadar(){
 async function toggleMilestone(id,day,mark){
   let u=null;
   Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){if(!t.reviewsDone)t.reviewsDone=[];if(!t.reviewHistoryStamps)t.reviewHistoryStamps={};if(mark){if(!t.reviewsDone.includes(day)){t.reviewsDone.push(day);t.reviewHistoryStamps[day]=activeDate;}triggerSurprise();gmOnRevision(false);}else{t.reviewsDone=t.reviewsDone.filter(m=>m!==day);delete t.reviewHistoryStamps[day];}u={...t};}}) );
-  renderDaily();
+  renderDaily(); htbRefresh();
   if(u){try{showSync('Saving…');dbTopics=await apiPut(`/topics/${id}`,u);}catch(e){showApiError('Save হয়নি — আবার try করুন।');}finally{hideSync();}}
 }
 async function approveCustomRev(id){
   let u=null;
   Object.values(dbTopics).forEach(arr=>arr.forEach(t=>{if(t.id===id){if(!t.customReviewHistoryDates)t.customReviewHistoryDates=[];t.customReviewHistoryDates.push(activeDate);t.customRevPendingOn=null;u={...t};triggerSurprise();gmOnRevision(true);}}) );
-  renderDaily();
+  renderDaily(); htbRefresh();
   if(u){try{showSync('Saving…');dbTopics=await apiPut(`/topics/${id}`,u);}catch(e){showApiError('Save হয়নি — আবার try করুন।');}finally{hideSync();}}
 }
 
@@ -6749,6 +6812,7 @@ function pomoOnPhaseEnd(completed){
     pomoShowToast('🎯','Focus Complete!',`${pomoData.focusMinutes} min session saved. Now rest.`,'#5b8af5');
     pomoRingBell();
     gmOnPomo();
+    htbRefresh();
     // 🤖 Show AI Motivator
     aiMotivatorShow(pomoCurTopic, pomoData.focusMinutes, pomoSessionNum);
   } else if(pomoIsRest && completed){
@@ -7665,6 +7729,7 @@ async function doComplete(id, url, pendingFcCards){
   closeModal('m-complete');
   fcModalTempCards = [];
   renderDaily();
+  htbRefresh();
   pomoSyncTopics();
   pomoRenderTopicSelect();
   if(updated){try{showSync('Completing…');dbTopics=await apiPut(`/topics/${id}`,updated);}catch(e){showApiError('Complete save হয়নি — আবার try করুন।');}finally{hideSync();}}
@@ -8023,6 +8088,7 @@ function fcStackRate(rating){
   fcSave(fcCards);
   gmEarnXP('flash', GM_XP.flashcardReview, 'Flashcard reviewed');
   aimPersistToday();
+  htbRefresh();
   fcUpdateNavBadge();
 
   fcStackSession.idx++;
@@ -9661,6 +9727,48 @@ function aimTodayStats(){
   return { topics, revisions, focusMin, flashcards };
 }
 
+// ── Header Today Bar refresh (standalone, called from anywhere) ──
+function htbRefresh(){
+  // Only works after aimTodayStats is available (post-load)
+  try {
+    const s = aimTodayStats();
+    const _upd = (id, valId, val) => {
+      const chip = document.getElementById(id);
+      const sp   = document.getElementById(valId);
+      if(chip && sp){ sp.textContent = val; chip.classList.toggle('has-data', val > 0); }
+    };
+
+    // Topics chip: show "done / total" with due count
+    const todayRecs  = dbTopics[systemToday] || [];
+    const doneCnt    = todayRecs.filter(t => t.status === 'Complete').length;
+    const pendingCnt = todayRecs.filter(t => t.status === 'Pending').length;
+    const totalCnt   = doneCnt + pendingCnt;
+    const topicsChip = document.getElementById('htb-topics');
+    const topicsVal  = document.getElementById('htb-topics-val');
+    const topicsDue  = document.getElementById('htb-topics-due');
+    if(topicsChip && topicsVal){
+      if(totalCnt > 0){
+        topicsVal.textContent = doneCnt;
+        if(topicsDue) topicsDue.textContent = `/${totalCnt}`;
+        topicsChip.classList.remove('has-data', 'has-due');
+        topicsChip.classList.add(pendingCnt > 0 ? 'has-due' : 'has-data');
+        topicsChip.title = pendingCnt > 0
+          ? `${pendingCnt}টা topic এখনো বাকি — শেষ করো!`
+          : `আজকের সব ${totalCnt}টা topic শেষ! 🎉`;
+      } else {
+        topicsVal.textContent = '0';
+        if(topicsDue) topicsDue.textContent = '';
+        topicsChip.classList.remove('has-data', 'has-due');
+        topicsChip.title = 'আজ কোনো topic add হয়নি';
+      }
+    }
+
+    _upd('htb-revs',   'htb-revs-val',   s.revisions);
+    _upd('htb-focus',  'htb-focus-val',  s.focusMin);
+    _upd('htb-cards',  'htb-cards-val',  s.flashcards);
+  } catch(e){ /* not yet ready */ }
+}
+
 // Score formula: topics*20 + revisions*15 + focusMin*0.5 + flashcards*5, capped 100
 function aimCalcScore(stats){
   const raw = stats.topics*20 + stats.revisions*15 + Math.min(stats.focusMin,120)*0.42 + stats.flashcards*5;
@@ -9708,15 +9816,7 @@ async function aimRenderToday(){
   document.getElementById('aim-val-flash').innerText   = stats.flashcards;
 
   // Update header today bar
-  const htbUpdate = (id, valId, val) => {
-    const chip = document.getElementById(id);
-    const sp   = document.getElementById(valId);
-    if(chip && sp){ sp.textContent = val; chip.classList.toggle('has-data', val > 0); }
-  };
-  htbUpdate('htb-topics', 'htb-topics-val', stats.topics);
-  htbUpdate('htb-revs',   'htb-revs-val',   stats.revisions);
-  htbUpdate('htb-focus',  'htb-focus-val',  stats.focusMin);
-  htbUpdate('htb-cards',  'htb-cards-val',  stats.flashcards);
+  htbRefresh();
 
   // Streak & status
   const sk = skGet();
